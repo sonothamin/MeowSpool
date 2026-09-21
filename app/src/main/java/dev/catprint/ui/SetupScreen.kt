@@ -1,5 +1,6 @@
 package dev.catprint.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -106,11 +107,9 @@ fun SetupScreen(
                         trailingContent = {
                             IconButton(onClick = { onRemove(p) }) { Icon(Icons.Default.Delete, "Forget ${p.name}") }
                         },
-                        modifier = Modifier.fillMaxWidth().then(Modifier),
+                        modifier = Modifier.fillMaxWidth().clickable { onSelect(p) },
                         colors = ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
                     )
-                    // whole row selectable
-                    if (p.addr != selected) TextButton(onClick = { onSelect(p) }, modifier = Modifier.padding(start = 56.dp)) { Text("Use this printer") }
                 }
             }
 
