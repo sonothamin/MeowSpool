@@ -7,7 +7,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.*
@@ -47,20 +46,19 @@ private fun avatarFor(name: String): Int? {
     }
 }
 
-/** Fades the avatar in from black to full brightness with a gentle scale-up, replayed whenever the model changes. */
+/** Fades the printer's picture in from black to full brightness with a gentle scale-up, replayed whenever the model changes. */
 @Composable
 private fun AvatarReveal(avatar: Int) {
     val reveal = remember(avatar) { Animatable(0f) }
-    LaunchedEffect(avatar) { reveal.animateTo(1f, tween(650, easing = FastOutSlowInEasing)) }
+    LaunchedEffect(avatar) { reveal.animateTo(1f, tween(700, easing = FastOutSlowInEasing)) }
     val v = reveal.value
     val matrix = ColorMatrix().apply { setToScale(v, v, v, 1f) }
     Image(
         painterResource(avatar), null,
         modifier = Modifier
-            .size(56.dp)
-            .clip(CircleShape)
-            .graphicsLayer { alpha = v; scaleX = 0.85f + 0.15f * v; scaleY = 0.85f + 0.15f * v },
-        contentScale = ContentScale.Crop,
+            .fillMaxHeight()
+            .graphicsLayer { alpha = v; scaleX = 0.9f + 0.1f * v; scaleY = 0.9f + 0.1f * v },
+        contentScale = ContentScale.Fit,
         colorFilter = ColorFilter.colorMatrix(matrix),
     )
 }
@@ -129,46 +127,55 @@ private fun PrinterHero(p: Printer, st: PState, ui: UiState, onSwitch: () -> Uni
     val fg = if (danger) cs.onErrorContainer else cs.onSurface
     val problems = statusItems(st).filter { it.problem }
     val ready = st.conn == Conn.CONNECTED && st.status?.blocking != true && !st.printing && !ui.testing
-    Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = bg, contentColor = fg)) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                val avatar = if (ui.deviceAvatars) avatarFor(p.name) else null
-                Box(Modifier.size(56.dp).background(fg.copy(alpha = 0.12f), CircleShape), contentAlignment = Alignment.Center) {
-                    if (sum.loading) CircularProgressIndicator(Modifier.size(30.dp), strokeWidth = 3.dp, color = fg)
-                    else if (avatar != null) AvatarReveal(avatar)
-                    else Icon(if (danger) Icons.Default.Warning else Icons.Default.Print, null, Modifier.size(30.dp))
+    val avatar = if (ui.deviceAvatars) avatarFor(p.name) else null
+
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        // Showcase: the printer itself is the hero, full-size on plain ground — not boxed like an avatar.
+        if (avatar != null && !sum.loading) Box(Modifier.fillMaxWidth().height(160.dp), contentAlignment = Alignment.Center) {
+            AvatarReveal(avatar)
+        }
+
+        // Status strip: name, state, detail, problem chips.
+        Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = bg, contentColor = fg)) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    if (avatar == null) Box(Modifier.size(48.dp).background(fg.copy(alpha = 0.12f), CircleShape), contentAlignment = Alignment.Center) {
+                        if (sum.loading) CircularProgressIndicator(Modifier.size(26.dp), strokeWidth = 3.dp, color = fg)
+                        else Icon(if (danger) Icons.Default.Warning else Icons.Default.Print, null, Modifier.size(26.dp))
+                    }
+                    Column(Modifier.weight(1f)) {
+                        Text(p.name, style = MaterialTheme.typography.labelLarge)
+                        Text(sum.title, style = MaterialTheme.typography.headlineSmall)
+                        sum.detail?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
+                    }
                 }
-                Column(Modifier.weight(1f)) {
-                    Text(p.name, style = MaterialTheme.typography.labelLarge)
-                    Text(sum.title, style = MaterialTheme.typography.headlineSmall)
-                    sum.detail?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
+                if (problems.isNotEmpty()) StatusChips(problems, fg)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Button(onClick = ui::requestTestPrint, enabled = ready, colors = ButtonDefaults.buttonColors(containerColor = fg, contentColor = bg)) {
+                        if (ui.testing) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp) else Icon(Icons.Default.ReceiptLong, null)
+                        Spacer(Modifier.width(8.dp)); Text(if (ui.testing) "Printing…" else "Test page")
+                    }
+                    if (st.conn == Conn.ERROR) FilledTonalButton(onClick = { PrinterManager.reconnect(p.addr) }, colors = ButtonDefaults.filledTonalButtonColors(containerColor = fg.copy(alpha = 0.16f), contentColor = fg)) {
+                        Icon(Icons.Default.Refresh, null); Spacer(Modifier.width(8.dp)); Text("Reconnect")
+                    }
+                    OutlinedButton(
+                        onClick = onSwitch,
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = fg),
+                        border = BorderStroke(1.dp, fg.copy(alpha = 0.6f)),
+                    ) { Icon(Icons.Default.SwapHoriz, null); Spacer(Modifier.width(8.dp)); Text("Switch printer") }
                 }
             }
-            // Only surface chips for things that actually need attention.
-            if (problems.isNotEmpty()) StatusChips(problems, fg)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Button(onClick = ui::requestTestPrint, enabled = ready, colors = ButtonDefaults.buttonColors(containerColor = fg, contentColor = bg)) {
-                    if (ui.testing) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp) else Icon(Icons.Default.ReceiptLong, null)
-                    Spacer(Modifier.width(8.dp)); Text(if (ui.testing) "Printing…" else "Test page")
+        }
+
+        // Feed/retract: its own box, separate from status.
+        Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = cs.surfaceContainerLow)) {
+            Row(Modifier.padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(onClick = ui::feed, enabled = ready, modifier = Modifier.weight(1f)) {
+                    Icon(Icons.Default.ArrowUpward, null); Spacer(Modifier.width(8.dp)); Text("Feed")
                 }
-                if (st.conn == Conn.ERROR) FilledTonalButton(onClick = { PrinterManager.reconnect(p.addr) }, colors = ButtonDefaults.filledTonalButtonColors(containerColor = fg.copy(alpha = 0.16f), contentColor = fg)) {
-                    Icon(Icons.Default.Refresh, null); Spacer(Modifier.width(8.dp)); Text("Reconnect")
+                OutlinedButton(onClick = ui::retract, enabled = ready, modifier = Modifier.weight(1f)) {
+                    Icon(Icons.Default.ArrowDownward, null); Spacer(Modifier.width(8.dp)); Text("Retract")
                 }
-                OutlinedButton(
-                    onClick = onSwitch,
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = fg),
-                    border = BorderStroke(1.dp, fg.copy(alpha = 0.6f)),
-                ) { Icon(Icons.Default.SwapHoriz, null); Spacer(Modifier.width(8.dp)); Text("Switch printer") }
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(
-                    onClick = ui::feed, enabled = ready, modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = fg), border = BorderStroke(1.dp, fg.copy(alpha = 0.6f)),
-                ) { Icon(Icons.Default.ArrowUpward, null); Spacer(Modifier.width(8.dp)); Text("Feed") }
-                OutlinedButton(
-                    onClick = ui::retract, enabled = ready, modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = fg), border = BorderStroke(1.dp, fg.copy(alpha = 0.6f)),
-                ) { Icon(Icons.Default.ArrowDownward, null); Spacer(Modifier.width(8.dp)); Text("Retract") }
             }
         }
     }
