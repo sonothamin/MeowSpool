@@ -3,6 +3,7 @@ package dev.meowspool.ui
 import android.content.Intent
 import android.os.Build
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -185,6 +186,23 @@ fun AppearanceScreen(ui: UiState, pad: PaddingValues) {
                     leadingContent = { Icon(Icons.Default.Palette, null) }, colors = clear(),
                     trailingContent = { Switch(ui.dynamicColor, { ui.dynamicColor = it }) },
                 )
+            }
+        }
+        item {
+            Group("Font") {
+                Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    UiFont.entries.forEach { f ->
+                        ListItem(
+                            headlineContent = { Text(f.label) }, colors = clear(),
+                            leadingContent = { RadioButton(selected = ui.uiFont == f, onClick = { ui.uiFont = f }) },
+                            modifier = Modifier.clickable { ui.uiFont = f },
+                        )
+                    }
+                    if (ui.uiFont != UiFont.DEFAULT) Text(
+                        "Fetched from Google Fonts the first time it's used; needs Google Play services.",
+                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
     }
