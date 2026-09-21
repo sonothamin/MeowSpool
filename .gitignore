@@ -3,3 +3,5 @@ build/
 *.iml
 local.properties
 .idea/
+# Ndot/NType are Nothing's proprietary fonts, fetched at build time (see app/build.gradle.kts), not redistributed here.
+app/src/main/assets/fonts/
