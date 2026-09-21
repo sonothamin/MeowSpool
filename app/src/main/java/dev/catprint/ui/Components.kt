@@ -2,6 +2,9 @@ package dev.catprint.ui
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.composed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -99,3 +102,5 @@ private fun StatusChips(status: PrinterStatus) {
 @Composable
 fun SectionHeader(text: String) =
     Text(text, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(top = 8.dp))
+
+fun Modifier.verticalScrollCompat(): Modifier = composed { this.verticalScroll(rememberScrollState()) }
