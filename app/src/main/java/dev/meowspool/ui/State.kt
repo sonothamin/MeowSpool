@@ -1,5 +1,6 @@
 package dev.meowspool.ui
 
+import android.net.Uri
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
@@ -76,6 +77,10 @@ class UiState(
 
     var serviceCheck: () -> Boolean = { true }
     var requestScan: () -> Unit = {}
+
+    /** A file shared into the app from another app ("Share" -> MeowSpool), waiting to be opened on the Direct print screen. */
+    var incomingShare by mutableStateOf<Uri?>(null)
+    fun share(uri: Uri) { incomingShare = uri }
 
     private var latched: String? = null
     private fun load() = Prefs.printers().map { Printer(it.first, it.second) }
