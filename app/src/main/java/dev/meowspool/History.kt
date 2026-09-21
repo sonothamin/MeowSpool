@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import java.io.File
 import java.util.UUID
 
-enum class HistorySource { TEST, DIRECT, SERVICE }
+enum class HistorySource { TEST, DIRECT, SERVICE, API }
 
 data class HistoryEntry(
     val id: String,

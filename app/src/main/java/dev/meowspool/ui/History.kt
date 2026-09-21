@@ -29,11 +29,13 @@ private fun sourceLabel(s: HistorySource) = when (s) {
     HistorySource.TEST -> "Test page"
     HistorySource.DIRECT -> "Print a file"
     HistorySource.SERVICE -> "Printed from another app"
+    HistorySource.API -> "Print server (API / web)"
 }
 private fun sourceIcon(s: HistorySource): ImageVector = when (s) {
     HistorySource.TEST -> Icons.Default.ReceiptLong
     HistorySource.DIRECT -> Icons.Default.UploadFile
     HistorySource.SERVICE -> Icons.Default.Print
+    HistorySource.API -> Icons.Default.Dns
 }
 
 @Composable

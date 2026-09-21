@@ -67,10 +67,10 @@ class DocSource private constructor(
     }
 
     companion object {
-        fun open(ctx: Context, uri: Uri): DocSource {
+        fun open(ctx: Context, uri: Uri, hintName: String? = null, hintPdf: Boolean = false): DocSource {
             val cr = ctx.contentResolver
-            val name = cr.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { if (it.moveToFirst()) it.getString(0) else null } ?: "Untitled"
-            if (cr.getType(uri) == "application/pdf" || name.endsWith(".pdf", true)) {
+            val name = cr.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { if (it.moveToFirst()) it.getString(0) else null } ?: hintName ?: "Untitled"
+            if (hintPdf || cr.getType(uri) == "application/pdf" || name.endsWith(".pdf", true)) {
                 val tmp = File.createTempFile("direct", ".pdf", ctx.cacheDir)
                 try {
                     (cr.openInputStream(uri) ?: throw IOException("Can't open file")).use { i -> tmp.outputStream().use { o -> i.copyTo(o) } }

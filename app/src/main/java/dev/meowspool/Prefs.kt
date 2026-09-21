@@ -101,4 +101,29 @@ object Prefs {
     var dynamicColor: Boolean
         get() = sp.getBoolean("dynamic", true)
         set(v) = sp.edit().putBoolean("dynamic", v).apply()
+
+    // Print server (HTTP API + web page)
+    var serverEnabled: Boolean
+        get() = sp.getBoolean("srvOn", false)
+        set(v) = sp.edit().putBoolean("srvOn", v).apply()
+    var serverWeb: Boolean
+        get() = sp.getBoolean("srvWeb", true)
+        set(v) = sp.edit().putBoolean("srvWeb", v).apply()
+    var serverApi: Boolean
+        get() = sp.getBoolean("srvApi", true)
+        set(v) = sp.edit().putBoolean("srvApi", v).apply()
+    /** true = reachable from the network (0.0.0.0); false = this phone only (127.0.0.1). */
+    var serverLan: Boolean
+        get() = sp.getBoolean("srvLan", true)
+        set(v) = sp.edit().putBoolean("srvLan", v).apply()
+    var serverPort: Int
+        get() = sp.getInt("srvPort", 8631)
+        set(v) = sp.edit().putInt("srvPort", v).apply()
+    var serverAuth: Boolean
+        get() = sp.getBoolean("srvAuth", false)
+        set(v) = sp.edit().putBoolean("srvAuth", v).apply()
+    var serverToken: String
+        get() = sp.getString("srvToken", null) ?: newToken().also { serverToken = it }
+        set(v) = sp.edit().putString("srvToken", v).apply()
+    fun newToken(): String = java.security.SecureRandom().let { r -> (1..24).map { "abcdefghijkmnpqrstuvwxyz23456789"[r.nextInt(32)] }.joinToString("") }
 }
