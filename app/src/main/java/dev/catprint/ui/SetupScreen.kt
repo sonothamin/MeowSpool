@@ -37,6 +37,8 @@ fun SetupScreen(
     onRemove: (Printer) -> Unit,
     onReconnect: (String) -> Unit,
     onOpenPrintSettings: () -> Unit,
+    crash: String?,
+    onDismissCrash: () -> Unit,
 ) {
     var debug by remember { mutableStateOf(Prefs.debug) }
     var darkness by remember { mutableFloatStateOf(Prefs.darkness.toFloat()) }
@@ -61,6 +63,19 @@ fun SetupScreen(
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = pad.calculateTopPadding() + 8.dp, bottom = pad.calculateBottomPadding() + 96.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            if (crash != null) item {
+                val clip = LocalClipboardManager.current
+                Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)) {
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("The app crashed last time", style = MaterialTheme.typography.titleMedium)
+                        Text(crash.lines().take(6).joinToString("\n"), fontFamily = FontFamily.Monospace, fontSize = 10.sp, maxLines = 6)
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            FilledTonalButton(onClick = { clip.setText(AnnotatedString(crash)) }) { Text("Copy details") }
+                            TextButton(onClick = onDismissCrash) { Text("Dismiss") }
+                        }
+                    }
+                }
+            }
             if (!serviceOn) item {
                 Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {

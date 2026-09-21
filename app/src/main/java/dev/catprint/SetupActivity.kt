@@ -55,6 +55,7 @@ class SetupActivity : ComponentActivity() {
                 val states by PrinterManager.states.collectAsState()
                 val found by scanner.found.collectAsState()
                 val scanning by scanner.scanning.collectAsState()
+                var crash by remember { mutableStateOf(Prefs.lastCrash) }
                 var serviceOn by remember { mutableStateOf(serviceEnabled()) }
 
                 // Re-check the print-service toggle when returning from system settings.
@@ -98,6 +99,8 @@ class SetupActivity : ComponentActivity() {
                     },
                     onReconnect = { PrinterManager.reconnect(it) },
                     onOpenPrintSettings = { startActivity(Intent(Settings.ACTION_PRINT_SETTINGS)) },
+                    crash = crash,
+                    onDismissCrash = { Prefs.lastCrash = null; crash = null },
                 )
             }
         }

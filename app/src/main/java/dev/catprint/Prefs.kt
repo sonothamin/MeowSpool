@@ -41,4 +41,9 @@ object Prefs {
     var darkness: Int
         get() = sp.getInt("darkness", 60)
         set(v) = sp.edit().putInt("darkness", v).apply()
+
+    /** Stack trace of the last uncaught crash (kept until dismissed) so it can be shown in the UI. */
+    var lastCrash: String?
+        get() = sp.getString("lastCrash", null)
+        set(v) { sp.edit().apply { if (v == null) remove("lastCrash") else putString("lastCrash", v) }.commit() }
 }

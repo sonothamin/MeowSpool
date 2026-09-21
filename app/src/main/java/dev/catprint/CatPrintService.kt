@@ -104,14 +104,15 @@ class CatPrintService : PrintService() {
 
     override fun onPrintJobQueued(job: PrintJob) {
         Dbg.d(T, "job queued ${job.id} printer=${job.info.printerId?.localId}")
-        job.start()
         io.execute {
             try {
+                job.start()
                 print(job)
                 if (!job.isCancelled) { job.complete(); Dbg.d(T, "job complete ${job.id}") }
             } catch (e: Throwable) {
                 Dbg.e(T, "job failed ${job.id}", e)
-                if (!job.isCancelled) job.fail(e.message ?: "Print failed")
+                try { if (!job.isCancelled && !job.isCompleted && !job.isFailed) job.fail(e.message ?: "Print failed") }
+                catch (e2: Throwable) { Dbg.e(T, "could not mark job failed", e2) }
             }
         }
     }
