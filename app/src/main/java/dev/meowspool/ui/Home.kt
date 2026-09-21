@@ -35,6 +35,7 @@ private fun avatarFor(name: String): Int? {
     val n = name.uppercase()
     return when {
         n.contains("MX10") -> R.drawable.printer_mx10
+        n.contains("MX05") -> R.drawable.printer_mx05
         n.contains("GB01") || n.contains("GB02") || n.contains("GB03") -> R.drawable.printer_gb01
         else -> null
     }
