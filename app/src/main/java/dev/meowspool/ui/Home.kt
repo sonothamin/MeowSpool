@@ -26,6 +26,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
@@ -46,21 +52,31 @@ private fun avatarFor(name: String): Int? {
     }
 }
 
-/** Fades the printer's picture in from black to full brightness with a gentle scale-up, replayed whenever the model changes. */
+/** Fades the printer's picture in from black to full brightness with a bouncy scale-up on launch, and
+ * crossfades out/in when the model changes (e.g. switching printers) instead of jump-cutting. */
 @Composable
 private fun AvatarReveal(avatar: Int) {
-    val reveal = remember(avatar) { Animatable(0f) }
-    LaunchedEffect(avatar) { reveal.animateTo(1f, tween(700, easing = FastOutSlowInEasing)) }
-    val v = reveal.value
-    val matrix = ColorMatrix().apply { setToScale(v, v, v, 1f) }
-    Image(
-        painterResource(avatar), null,
-        modifier = Modifier
-            .fillMaxHeight()
-            .graphicsLayer { alpha = v; scaleX = 0.9f + 0.1f * v; scaleY = 0.9f + 0.1f * v },
-        contentScale = ContentScale.Fit,
-        colorFilter = ColorFilter.colorMatrix(matrix),
-    )
+    AnimatedContent(
+        targetState = avatar,
+        transitionSpec = {
+            (fadeIn(tween(500, easing = FastOutSlowInEasing)) + scaleIn(initialScale = 0.7f, animationSpec = tween(500, easing = FastOutSlowInEasing)))
+                .togetherWith(fadeOut(tween(250)) + scaleOut(targetScale = 0.8f, animationSpec = tween(250)))
+        },
+        label = "avatarReveal",
+    ) { a ->
+        val reveal = remember(a) { Animatable(0f) }
+        LaunchedEffect(a) { reveal.animateTo(1f, tween(800, easing = FastOutSlowInEasing)) }
+        val v = reveal.value
+        val matrix = ColorMatrix().apply { setToScale(v, v, v, 1f) }
+        Image(
+            painterResource(a), null,
+            modifier = Modifier
+                .fillMaxHeight()
+                .graphicsLayer { alpha = v; scaleX = 0.8f + 0.2f * v; scaleY = 0.8f + 0.2f * v },
+            contentScale = ContentScale.Fit,
+            colorFilter = ColorFilter.colorMatrix(matrix),
+        )
+    }
 }
 
 @Composable
@@ -131,7 +147,7 @@ private fun PrinterHero(p: Printer, st: PState, ui: UiState, onSwitch: () -> Uni
 
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         // Showcase: the printer itself is the hero, full-size on plain ground — not boxed like an avatar.
-        if (avatar != null && !sum.loading) Box(Modifier.fillMaxWidth().height(160.dp), contentAlignment = Alignment.Center) {
+        if (avatar != null && !sum.loading) Box(Modifier.fillMaxWidth().height(220.dp), contentAlignment = Alignment.Center) {
             AvatarReveal(avatar)
         }
 
