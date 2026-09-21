@@ -191,15 +191,15 @@ fun AppearanceScreen(ui: UiState, pad: PaddingValues) {
         item {
             Group("Font") {
                 Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    UiFont.values().forEach { f ->
+                    UiFont.values().filter { it.isAvailable() }.forEach { f ->
                         ListItem(
                             headlineContent = { Text(f.label) }, colors = clear(),
                             leadingContent = { RadioButton(selected = ui.uiFont == f, onClick = { ui.uiFont = f }) },
                             modifier = Modifier.clickable { ui.uiFont = f },
                         )
                     }
-                    if (ui.uiFont != UiFont.DEFAULT) Text(
-                        "Fetched from Google Fonts the first time it's used; needs Google Play services.",
+                    if (ui.uiFont.titlesOnly) Text(
+                        "${ui.uiFont.label} is a display face, so it's used for titles only; body text stays on Inter.",
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
