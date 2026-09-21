@@ -66,9 +66,10 @@ fun PrintFileScreen(ui: UiState, pad: PaddingValues, go: (Dest) -> Unit) {
     }
     LaunchedEffect(ui.incomingShare) {
         val uri = ui.incomingShare ?: return@LaunchedEffect
+        Dbg.d("Share", "PrintFileScreen consuming incomingShare=$uri")
         ui.incomingShare = null
         withContext(Dispatchers.IO) { runCatching { DocSource.open(ctx, uri) } }
-            .onSuccess { nd -> doc?.close(); doc = nd; s = nd.defaults(); page = 0; preview = null }
+            .onSuccess { nd -> Dbg.d("Share", "share open ok: ${nd.name}"); doc?.close(); doc = nd; s = nd.defaults(); page = 0; preview = null }
             .onFailure { Dbg.e("Direct", "share open failed", it); ui.notify("Couldn’t open shared file: ${it.message ?: "unsupported"}") }
     }
     val cur = page.coerceIn(s.firstPage, s.lastPage.coerceAtLeast(s.firstPage))

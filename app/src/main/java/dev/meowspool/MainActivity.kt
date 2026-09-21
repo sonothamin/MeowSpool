@@ -56,6 +56,7 @@ class MainActivity : ComponentActivity() {
         if (i?.action != Intent.ACTION_SEND) return
         val uri = if (Build.VERSION.SDK_INT >= 33) i.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
         else @Suppress("DEPRECATION") i.getParcelableExtra(Intent.EXTRA_STREAM)
+        Dbg.d("Share", "handleShare uri=$uri")
         uri?.let { ui.share(it) }
     }
 
