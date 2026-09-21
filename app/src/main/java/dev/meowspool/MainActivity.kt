@@ -2,7 +2,9 @@ package dev.meowspool
 
 import android.Manifest
 import android.content.ComponentName
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -40,12 +42,22 @@ class MainActivity : ComponentActivity() {
         }
         ui.refreshService()
         if (Prefs.serverEnabled && !ServerService.state.value.running) ServerService.apply(this)
+        handleShare(intent)
         setContent { MeowSpoolRoot(ui) }
     }
 
+    override fun onNewIntent(intent: Intent) { super.onNewIntent(intent); setIntent(intent); handleShare(intent) }
     override fun onStart() { super.onStart(); ui.onStart() }
     override fun onResume() { super.onResume(); ui.refreshService() }
     override fun onStop() { super.onStop(); ui.onStop() }
+
+    /** Someone else's "Share" -> MeowSpool: pull out the image/PDF and send it to the Direct print screen. */
+    private fun handleShare(i: Intent?) {
+        if (i?.action != Intent.ACTION_SEND) return
+        val uri = if (Build.VERSION.SDK_INT >= 33) i.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
+        else @Suppress("DEPRECATION") i.getParcelableExtra(Intent.EXTRA_STREAM)
+        uri?.let { ui.share(it) }
+    }
 
     /** Only report "off" when we can tell it's off: not bound by the system and the setting is readable but lacks us. */
     private fun serviceEnabled(): Boolean {
