@@ -104,7 +104,7 @@ fun PrintSettingsScreen(ui: UiState, pad: PaddingValues) {
         }
         item {
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = ui::testPrint, enabled = ui.canTest) { Icon(Icons.Default.ReceiptLong, null); Spacer(Modifier.width(8.dp)); Text("Print test page") }
+                Button(onClick = ui::requestTestPrint, enabled = ui.canTest) { Icon(Icons.Default.ReceiptLong, null); Spacer(Modifier.width(8.dp)); Text("Print test page") }
                 OutlinedButton(onClick = ui::resetPrintSettings) { Icon(Icons.Default.RestartAlt, null); Spacer(Modifier.width(8.dp)); Text("Reset") }
             }
         }

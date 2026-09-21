@@ -91,7 +91,7 @@ fun PrintFileScreen(ui: UiState, pad: PaddingValues, go: (Dest) -> Unit) {
                 null
             } catch (e: Throwable) { Dbg.e("Direct", "print failed", e); e.message ?: "Print failed" }
             sending = false
-            ui.notify(if (err == null) "Sent to ${p.name}" else "Print failed: $err")
+            if (err != null) ui.notify("Print failed: $err")
         }
     }
 

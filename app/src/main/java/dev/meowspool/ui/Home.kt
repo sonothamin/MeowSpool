@@ -81,19 +81,19 @@ private fun NoPrinter(onFind: () -> Unit) {
 private fun PrinterHero(p: Printer, st: PState, ui: UiState, onSwitch: () -> Unit) {
     val sum = summarize(st)
     val cs = MaterialTheme.colorScheme
-    val (bg, fg) = when (sum.level) {
-        Level.OK -> cs.primaryContainer to cs.onPrimaryContainer
-        Level.WARN -> cs.tertiaryContainer to cs.onTertiaryContainer
-        Level.ERROR -> cs.errorContainer to cs.onErrorContainer
-        Level.INFO -> cs.surfaceVariant to cs.onSurfaceVariant
-    }
+    // Calm "print ready" card by default; only an actual error turns it red. No more loud
+    // colouring (or a wall of "Paper OK"/"Battery OK" chips) just because everything is fine.
+    val danger = sum.level == Level.ERROR
+    val bg = if (danger) cs.errorContainer else cs.surfaceContainerLow
+    val fg = if (danger) cs.onErrorContainer else cs.onSurface
+    val problems = statusItems(st).filter { it.problem }
     val ready = st.conn == Conn.CONNECTED && st.status?.blocking != true && !st.printing && !ui.testing
     Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = bg, contentColor = fg)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 Box(Modifier.size(56.dp).background(fg.copy(alpha = 0.12f), CircleShape), contentAlignment = Alignment.Center) {
                     if (sum.loading) CircularProgressIndicator(Modifier.size(30.dp), strokeWidth = 3.dp, color = fg)
-                    else Icon(if (sum.level == Level.ERROR || sum.level == Level.WARN) Icons.Default.Warning else Icons.Default.Print, null, Modifier.size(30.dp))
+                    else Icon(if (danger) Icons.Default.Warning else Icons.Default.Print, null, Modifier.size(30.dp))
                 }
                 Column(Modifier.weight(1f)) {
                     Text(p.name, style = MaterialTheme.typography.labelLarge)
@@ -101,12 +101,21 @@ private fun PrinterHero(p: Printer, st: PState, ui: UiState, onSwitch: () -> Uni
                     sum.detail?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
                 }
             }
-            StatusChips(statusItems(st), fg)
+            // Only surface chips for things that actually need attention.
+            if (problems.isNotEmpty()) StatusChips(problems, fg)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Button(onClick = ui::testPrint, enabled = ready, colors = ButtonDefaults.buttonColors(containerColor = fg, contentColor = bg)) {
+                Button(onClick = ui::requestTestPrint, enabled = ready, colors = ButtonDefaults.buttonColors(containerColor = fg, contentColor = bg)) {
                     if (ui.testing) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp) else Icon(Icons.Default.ReceiptLong, null)
                     Spacer(Modifier.width(8.dp)); Text(if (ui.testing) "Printing…" else "Test page")
                 }
+                OutlinedButton(
+                    onClick = ui::feed, enabled = ready,
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = fg), border = BorderStroke(1.dp, fg.copy(alpha = 0.6f)),
+                ) { Icon(Icons.Default.ArrowDownward, null); Spacer(Modifier.width(8.dp)); Text("Feed") }
+                OutlinedButton(
+                    onClick = ui::retract, enabled = ready,
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = fg), border = BorderStroke(1.dp, fg.copy(alpha = 0.6f)),
+                ) { Icon(Icons.Default.ArrowUpward, null); Spacer(Modifier.width(8.dp)); Text("Retract") }
                 if (st.conn == Conn.ERROR) FilledTonalButton(onClick = { PrinterManager.reconnect(p.addr) }, colors = ButtonDefaults.filledTonalButtonColors(containerColor = fg.copy(alpha = 0.16f), contentColor = fg)) {
                     Icon(Icons.Default.Refresh, null); Spacer(Modifier.width(8.dp)); Text("Reconnect")
                 }

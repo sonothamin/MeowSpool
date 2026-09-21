@@ -63,6 +63,15 @@ object PrinterManager {
         update(addr) { PState() }
     }
 
+    /** Immediately drop the connection regardless of holders or grace period, e.g. when the printer is forgotten.
+     * Without this, [release] leaves it "ghost" connected for [GRACE_MS] after the last holder lets go. */
+    fun forget(addr: String) {
+        Dbg.d(T, "forget $addr")
+        synchronized(this) { holds.remove(addr); releases.remove(addr)?.cancel(); loops.remove(addr)?.cancel() }
+        scope.launch { lock.lock(); try { links.remove(addr)?.close() } finally { lock.unlock() } }
+        _states.update { it - addr }
+    }
+
     /** Drop the current link; the maintain loop reconnects. */
     fun reconnect(addr: String) {
         Dbg.d(T, "manual reconnect $addr")

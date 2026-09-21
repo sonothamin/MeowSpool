@@ -33,6 +33,8 @@ class UiState(
     var saved by mutableStateOf(load()); private set
     var selected by mutableStateOf(Prefs.selected); private set
     var testing by mutableStateOf(false); private set
+    /** Whether the test-print preview/confirmation screen should be showing, from anywhere in the app. */
+    var testConfirm by mutableStateOf(false); private set
     var serviceOn by mutableStateOf(true)
     var crash by mutableStateOf(Prefs.lastCrash)
     /** First-run "connect your first printer" flow; skipped for anyone who already has a printer. */
@@ -83,9 +85,10 @@ class UiState(
         if (latched != addr) { latched?.let { PrinterManager.release(it) }; latched = addr?.also { PrinterManager.latch(it) } }
     }
 
-    fun select(p: Printer) { Prefs.add(p.addr, p.name); saved = load(); latch(p.addr); say("Using ${p.name}") }
+    fun select(p: Printer) { Prefs.add(p.addr, p.name); saved = load(); latch(p.addr) }
     fun remove(p: Printer) {
         Prefs.remove(p.addr); saved = load(); latch(Prefs.selected)
+        PrinterManager.forget(p.addr) // else it hangs ghost-connected until the grace period ends
         say("Forgot ${p.name}", "Undo") { Prefs.add(p.addr, p.name); saved = load(); if (selected == null) latch(p.addr) }
     }
     fun scan() { if (!scanner.start()) say("Turn Bluetooth on to scan") }
@@ -104,13 +107,27 @@ class UiState(
     fun resetPrintSettings() { darkness = 60; dither = Dither.FLOYD; feedMm = 12; lineBefore = false; lineAfter = false; lineDashed = true; marginSideMm = 0; marginVertMm = 0 }
 
     val canTest get() = selectedPrinter != null && !testing
-    fun testPrint() {
+
+    /** Step 1: show the preview/confirmation screen instead of printing straight away, to avoid wasting paper on an accidental tap. */
+    fun requestTestPrint() { if (selectedPrinter != null) testConfirm = true }
+    fun cancelTestPrint() { if (!testing) testConfirm = false }
+    /** Step 2: the user confirmed on the preview screen, so actually send it. */
+    fun confirmTestPrint() {
         val p = selectedPrinter ?: return
         testing = true
         scope.launch(Dispatchers.IO) {
             val err = try { PrintEngine.printTestPage(p.addr, p.name); null } catch (e: Throwable) { Dbg.e("UI", "test print failed", e); e.message ?: "Print failed" }
-            testing = false
-            say(if (err == null) "Test page sent" else "Test print failed: $err")
+            testing = false; testConfirm = false
+            if (err != null) say("Test print failed: $err")
         }
+    }
+
+    fun feed() {
+        val p = selectedPrinter ?: return
+        scope.launch(Dispatchers.IO) { try { PrintEngine.feed(p.addr) } catch (e: Throwable) { Dbg.e("UI", "feed failed", e); say("Feed failed: ${e.message ?: "error"}") } }
+    }
+    fun retract() {
+        val p = selectedPrinter ?: return
+        scope.launch(Dispatchers.IO) { try { PrintEngine.retract(p.addr) } catch (e: Throwable) { Dbg.e("UI", "retract failed", e); say("Retract failed: ${e.message ?: "error"}") } }
     }
 }

@@ -70,6 +70,11 @@ object PrintEngine {
         val bmp = TestPage.render(printerName)
         try { sendRows(addr, CatProtocol.toRows(bmp)) } finally { bmp.recycle() }
     }
+
+    /** Manual paper advance, e.g. from a "Feed" button; not part of a print job. */
+    fun feed(addr: String, mm: Int = 20) = PrinterManager.withLink(addr) { it.send(CatProtocol.feed(mm * 8)) }
+    /** Manual paper retract, e.g. from a "Retract" button. */
+    fun retract(addr: String, mm: Int = 20) = PrinterManager.withLink(addr) { it.send(CatProtocol.retract(mm * 8)) }
 }
 
 object TestPage {

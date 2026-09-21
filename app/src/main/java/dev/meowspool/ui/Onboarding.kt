@@ -107,7 +107,7 @@ fun OnboardingScreen(ui: UiState) {
                             TextButton(onClick = { step = 1 }) { Text("Back") }
                         }
                         else -> {
-                            OutlinedButton(onClick = ui::testPrint, enabled = ui.canTest, modifier = Modifier.fillMaxWidth().height(52.dp)) {
+                            OutlinedButton(onClick = ui::requestTestPrint, enabled = ui.canTest, modifier = Modifier.fillMaxWidth().height(52.dp)) {
                                 Icon(Icons.Default.ReceiptLong, null); Spacer(Modifier.width(8.dp)); Text(if (ui.testing) "Printing…" else "Print a test page")
                             }
                             BigButton("Done", onClick = ui::finishOnboarding)

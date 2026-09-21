@@ -54,6 +54,11 @@ object CatProtocol {
 
     fun line(row: ByteArray) = packet(0xA2, row)
 
+    /** Advance blank paper without printing (button-triggered, not part of a print job). */
+    fun feed(lines: Int) = packet(0xA1, b(lines and 0xFF, (lines shr 8) and 0xFF))
+    /** Pull paper back in (button-triggered). */
+    fun retract(lines: Int) = packet(0xA0, b(lines and 0xFF, (lines shr 8) and 0xFF))
+
     private val BAYER = intArrayOf(0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5)
 
     /** Solid or dashed horizontal rule (with breathing room) as raw rows, for tear-off lines. */
