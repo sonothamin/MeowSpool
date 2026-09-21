@@ -13,7 +13,6 @@ import android.printservice.PrintJob
 import android.printservice.PrintService
 import android.printservice.PrinterDiscoverySession
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
 import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
