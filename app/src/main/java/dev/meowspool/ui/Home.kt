@@ -2,6 +2,7 @@ package dev.meowspool.ui
 
 import android.content.Intent
 import android.provider.Settings
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -93,14 +94,18 @@ private fun PrinterHero(p: Printer, st: PState, ui: UiState, onSwitch: () -> Uni
             }
             StatusChips(statusItems(st), fg)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Button(onClick = ui::testPrint, enabled = ready) {
+                Button(onClick = ui::testPrint, enabled = ready, colors = ButtonDefaults.buttonColors(containerColor = fg, contentColor = bg)) {
                     if (ui.testing) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp) else Icon(Icons.Default.ReceiptLong, null)
                     Spacer(Modifier.width(8.dp)); Text(if (ui.testing) "Printing…" else "Test page")
                 }
-                if (st.conn == Conn.ERROR) FilledTonalButton(onClick = { PrinterManager.reconnect(p.addr) }) {
+                if (st.conn == Conn.ERROR) FilledTonalButton(onClick = { PrinterManager.reconnect(p.addr) }, colors = ButtonDefaults.filledTonalButtonColors(containerColor = fg.copy(alpha = 0.16f), contentColor = fg)) {
                     Icon(Icons.Default.Refresh, null); Spacer(Modifier.width(8.dp)); Text("Reconnect")
                 }
-                TextButton(onClick = onSwitch) { Text("Switch printer") }
+                OutlinedButton(
+                    onClick = onSwitch,
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = fg),
+                    border = BorderStroke(1.dp, fg.copy(alpha = 0.6f)),
+                ) { Icon(Icons.Default.SwapHoriz, null); Spacer(Modifier.width(8.dp)); Text("Switch printer") }
             }
         }
     }
@@ -116,18 +121,8 @@ private fun SetupCard(ui: UiState, go: (Dest) -> Unit) {
             modifier = Modifier.clickable { go(Dest.Paper) },
         )
         HorizontalDivider()
-        Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-            val label = when { ui.darkness < 34 -> "Light"; ui.darkness < 67 -> "Normal"; else -> "Dark" }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.BrightnessMedium, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                Spacer(Modifier.width(16.dp)); Text("Darkness", Modifier.weight(1f))
-                Text("$label · ${ui.darkness}%", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            Slider(value = ui.darkness.toFloat(), onValueChange = { ui.darkness = it.toInt() }, valueRange = 0f..100f)
-        }
-        HorizontalDivider()
         ListItem(
-            headlineContent = { Text("Print settings") }, supportingContent = { Text(ui.finishSummary) },
+            headlineContent = { Text("Print settings") }, supportingContent = { Text("Darkness ${ui.darkness}% · ${ui.finishSummary}") },
             leadingContent = { Icon(Icons.Default.Tune, null) }, trailingContent = chevron, colors = clear(),
             modifier = Modifier.clickable { go(Dest.Print) },
         )
@@ -142,8 +137,8 @@ private fun CrashCard(crash: String, onDismiss: () -> Unit) {
             Text("The app crashed last time", style = MaterialTheme.typography.titleMedium)
             Text(crash.lines().take(6).joinToString("\n"), fontFamily = FontFamily.Monospace, fontSize = 10.sp, maxLines = 6)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilledTonalButton(onClick = { clip.setText(AnnotatedString(crash)) }) { Text("Copy details") }
-                TextButton(onClick = onDismiss) { Text("Dismiss") }
+                FilledTonalButton(onClick = { clip.setText(AnnotatedString(crash)) }, colors = ButtonDefaults.filledTonalButtonColors(containerColor = MaterialTheme.colorScheme.onErrorContainer, contentColor = MaterialTheme.colorScheme.errorContainer)) { Text("Copy details") }
+                TextButton(onClick = onDismiss, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onErrorContainer)) { Text("Dismiss") }
             }
         }
     }

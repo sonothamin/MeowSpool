@@ -83,6 +83,10 @@ object Prefs {
         get() = sp.getBoolean("lineDashed", true)
         set(v) = sp.edit().putBoolean("lineDashed", v).apply()
 
+    var onboarded: Boolean
+        get() = sp.getBoolean("onboarded", false)
+        set(v) = sp.edit().putBoolean("onboarded", v).apply()
+
     /** 0 = follow system, 1 = light, 2 = dark. */
     var theme: Int
         get() = sp.getInt("theme", 0)
