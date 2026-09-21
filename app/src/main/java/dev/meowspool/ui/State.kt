@@ -55,6 +55,7 @@ class UiState(
     var marginVertMm by PrefState(Prefs.marginVertMm) { Prefs.marginVertMm = it }
     var themeMode by PrefState(Prefs.theme) { Prefs.theme = it }
     var dynamicColor by PrefState(Prefs.dynamicColor) { Prefs.dynamicColor = it }
+    var deviceAvatars by PrefState(Prefs.deviceAvatars) { Prefs.deviceAvatars = it }
     var uiFont by PrefState(UiFont.fromPref()) { Prefs.uiFont = it.name }
 
     // Print server

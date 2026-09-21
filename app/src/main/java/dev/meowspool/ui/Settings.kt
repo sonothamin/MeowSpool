@@ -186,6 +186,11 @@ fun AppearanceScreen(ui: UiState, pad: PaddingValues) {
                     leadingContent = { Icon(Icons.Default.Palette, null) }, colors = clear(),
                     trailingContent = { Switch(ui.dynamicColor, { ui.dynamicColor = it }) },
                 )
+                ListItem(
+                    headlineContent = { Text("Device pictures") }, supportingContent = { Text("Show a picture of your printer on Home when its model is recognised") },
+                    leadingContent = { Icon(Icons.Default.Image, null) }, colors = clear(),
+                    trailingContent = { Switch(ui.deviceAvatars, { ui.deviceAvatars = it }) },
+                )
             }
         }
         item {

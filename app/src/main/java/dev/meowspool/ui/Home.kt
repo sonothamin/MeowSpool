@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.*
@@ -20,9 +21,24 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.ContentScale
 import dev.meowspool.Conn
 import dev.meowspool.PState
+import dev.meowspool.Prefs
 import dev.meowspool.PrinterManager
+import dev.meowspool.R
+
+/** Best-effort model match from the BLE advertised name, for a friendly device picture on Home. */
+private fun avatarFor(name: String): Int? {
+    val n = name.uppercase()
+    return when {
+        n.contains("MX10") -> R.drawable.printer_mx10
+        n.contains("GB01") || n.contains("GB02") || n.contains("GB03") -> R.drawable.printer_gb01
+        else -> null
+    }
+}
 
 @Composable
 private fun clear() = ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent)
@@ -91,8 +107,10 @@ private fun PrinterHero(p: Printer, st: PState, ui: UiState, onSwitch: () -> Uni
     Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = bg, contentColor = fg)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                val avatar = if (ui.deviceAvatars) avatarFor(p.name) else null
                 Box(Modifier.size(56.dp).background(fg.copy(alpha = 0.12f), CircleShape), contentAlignment = Alignment.Center) {
                     if (sum.loading) CircularProgressIndicator(Modifier.size(30.dp), strokeWidth = 3.dp, color = fg)
+                    else if (avatar != null) Image(painterResource(avatar), null, Modifier.size(56.dp).clip(CircleShape), contentScale = ContentScale.Crop)
                     else Icon(if (danger) Icons.Default.Warning else Icons.Default.Print, null, Modifier.size(30.dp))
                 }
                 Column(Modifier.weight(1f)) {

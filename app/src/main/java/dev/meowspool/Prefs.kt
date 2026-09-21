@@ -101,6 +101,9 @@ object Prefs {
     var dynamicColor: Boolean
         get() = sp.getBoolean("dynamic", true)
         set(v) = sp.edit().putBoolean("dynamic", v).apply()
+    var deviceAvatars: Boolean
+        get() = sp.getBoolean("deviceAvatars", true)
+        set(v) = sp.edit().putBoolean("deviceAvatars", v).apply()
     /** Name of a dev.meowspool.ui.UiFont; blank/unknown falls back to the platform default. */
     var uiFont: String
         get() = sp.getString("uiFont", "") ?: ""
