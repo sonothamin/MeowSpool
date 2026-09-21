@@ -71,6 +71,8 @@ class UiState(
         add(dither.label.lowercase())
     }.joinToString(" · ")
 
+    fun notify(msg: String) { say(msg) }
+
     fun onStart() { Prefs.selected?.let { latch(it) } }
     fun onStop() { scanner.stop(); latched?.let { PrinterManager.release(it) }; latched = null }
     fun refreshService() { serviceOn = serviceCheck() }

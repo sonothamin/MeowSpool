@@ -26,7 +26,7 @@ import dev.meowspool.Dither
 private fun clear() = ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent)
 
 @Composable
-private fun Group(title: String, content: @Composable ColumnScope.() -> Unit) {
+internal fun Group(title: String, content: @Composable ColumnScope.() -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         SectionHeader(title)
         Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {

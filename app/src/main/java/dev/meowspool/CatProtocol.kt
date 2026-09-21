@@ -64,6 +64,18 @@ object CatProtocol {
         return List(6) { blank } + List(3) { line } + List(6) { blank }
     }
 
+    /** Inverse of [toRows]: 1-bit rows back to a black/white bitmap (for previews). */
+    fun rowsToBitmap(rows: List<ByteArray>): Bitmap {
+        val bmp = Bitmap.createBitmap(WIDTH, rows.size.coerceAtLeast(1), Bitmap.Config.ARGB_8888)
+        bmp.eraseColor(Color.WHITE)
+        val px = IntArray(WIDTH)
+        rows.forEachIndexed { y, r ->
+            for (x in 0 until WIDTH) px[x] = if (((r[x shr 3].toInt() shr (x and 7)) and 1) == 1) Color.BLACK else Color.WHITE
+            bmp.setPixels(px, 0, WIDTH, 0, y, WIDTH, 1)
+        }
+        return bmp
+    }
+
     /** Dither a WIDTH-wide bitmap into 1-bit rows (LSB = leftmost, 1 = black). */
     fun toRows(src: Bitmap, mode: Dither = Dither.fromPref()): List<ByteArray> {
         val h = src.height

@@ -31,26 +31,31 @@ object Paper {
     fun selected() = all().firstOrNull { it.id == Prefs.paperId } ?: builtIns[0]
 }
 
+/** Output settings for one print job; defaults to the global preferences. */
+data class PrintOptions(val darkness: Int, val feedMm: Int, val lineBefore: Boolean, val lineAfter: Boolean, val lineDashed: Boolean) {
+    companion object { fun fromPrefs() = PrintOptions(Prefs.darkness, Prefs.feedMm, Prefs.lineBefore, Prefs.lineAfter, Prefs.lineDashed) }
+}
+
 object PrintEngine {
     /** Apply the tear-off line settings around the page rows. */
-    fun decorate(rows: List<ByteArray>): List<ByteArray> {
-        if (!Prefs.lineBefore && !Prefs.lineAfter) return rows
-        val sep = CatProtocol.separator(Prefs.lineDashed)
-        return (if (Prefs.lineBefore) sep else emptyList()) + rows + (if (Prefs.lineAfter) sep else emptyList())
+    fun decorate(rows: List<ByteArray>, o: PrintOptions = PrintOptions.fromPrefs()): List<ByteArray> {
+        if (!o.lineBefore && !o.lineAfter) return rows
+        val sep = CatProtocol.separator(o.lineDashed)
+        return (if (o.lineBefore) sep else emptyList()) + rows + (if (o.lineAfter) sep else emptyList())
     }
 
     /** Send 1-bit [rows] to the printer over its (latched or on-demand) link, honouring print settings. */
-    fun sendRows(addr: String, rows: List<ByteArray>, cancelled: () -> Boolean = { false }) {
-        val all = decorate(rows)
+    fun sendRows(addr: String, rows: List<ByteArray>, opts: PrintOptions = PrintOptions.fromPrefs(), cancelled: () -> Boolean = { false }) {
+        val all = decorate(rows, opts)
         PrinterManager.withLink(addr) { link ->
             link.requestStatus(); Thread.sleep(400)
             link.status?.takeIf { it.blocking }?.let { throw IOException(it.problems().joinToString()) }
-            link.send(CatProtocol.begin(Prefs.darkness))
+            link.send(CatProtocol.begin(opts.darkness))
             for (grp in all.chunked(8)) {
                 if (cancelled()) { Dbg.d("Engine", "cancelled mid-send"); break }
                 link.send(grp.fold(ByteArray(0)) { acc, r -> acc + CatProtocol.line(r) })
             }
-            link.send(CatProtocol.end(Prefs.feedMm * 8))
+            link.send(CatProtocol.end(opts.feedMm * 8))
             val t0 = System.currentTimeMillis()
             Thread.sleep(1500)
             while (System.currentTimeMillis() - t0 < 8000) {

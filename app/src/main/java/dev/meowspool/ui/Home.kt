@@ -50,6 +50,15 @@ fun HomeScreen(ui: UiState, pad: PaddingValues, go: (Dest) -> Unit) {
             if (p == null) NoPrinter { go(Dest.Devices); ui.requestScan() }
             else PrinterHero(p, states[p.addr] ?: PState(), ui) { go(Dest.Devices) }
         }
+        item {
+            Card(Modifier.fillMaxWidth().clickable { go(Dest.Direct) }, colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
+                ListItem(
+                    headlineContent = { Text("Print a photo or PDF") }, supportingContent = { Text("Preview, adjust and print straight from here") },
+                    leadingContent = { Icon(Icons.Default.UploadFile, null) },
+                    trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null) }, colors = clear(),
+                )
+            }
+        }
         item { SectionHeader("Print setup") }
         item { SetupCard(ui, go) }
     }

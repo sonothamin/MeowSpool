@@ -24,6 +24,7 @@ import kotlinx.coroutines.launch
 
 enum class Dest(val title: String, val icon: ImageVector) {
     Home("MeowSpool", Icons.Default.Home),
+    Direct("Print a file", Icons.Default.UploadFile),
     Devices("Devices", Icons.Default.Bluetooth),
     Paper("Paper", Icons.Default.Description),
     Print("Print settings", Icons.Default.Tune),
@@ -34,7 +35,7 @@ enum class Dest(val title: String, val icon: ImageVector) {
 
 /** Drawer layout: (section heading, destinations). About is pinned separately at the bottom. */
 private val sections = listOf(
-    null to listOf(Dest.Home, Dest.Devices),
+    null to listOf(Dest.Home, Dest.Direct, Dest.Devices),
     "Printing" to listOf(Dest.Paper, Dest.Print),
     "App" to listOf(Dest.Look, Dest.Log),
 )
@@ -89,6 +90,7 @@ private fun MainShell(ui: UiState) {
                 ) { pad ->
                     when (dest) {
                         Dest.Home -> HomeScreen(ui, pad, ::go)
+                        Dest.Direct -> PrintFileScreen(ui, pad, ::go)
                         Dest.Devices -> DevicesScreen(ui, pad)
                         Dest.Paper -> PaperScreen(ui, pad)
                         Dest.Print -> PrintSettingsScreen(ui, pad)
