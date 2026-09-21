@@ -8,6 +8,7 @@ class MeowSpoolApp : Application() {
         super.onCreate()
         Prefs.init(this)
         PrinterManager.init(this)
+        History.init(this)
         val prev = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler { t, e ->
             try {

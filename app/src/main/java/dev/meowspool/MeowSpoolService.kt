@@ -164,7 +164,7 @@ class MeowSpoolService : PrintService() {
                 } finally { renderer.close() }
             } } finally { tmp.delete() }
             // 2) send over the latched link
-            PrintEngine.sendRows(addr, rows) { cancelled.remove(key) }
+            PrintEngine.sendRows(addr, rows, source = HistorySource.SERVICE) { cancelled.remove(key) }
         } finally { PrinterManager.release(addr) }
     }
 }

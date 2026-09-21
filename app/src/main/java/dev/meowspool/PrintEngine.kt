@@ -44,31 +44,44 @@ object PrintEngine {
         return (if (o.lineBefore) sep else emptyList()) + rows + (if (o.lineAfter) sep else emptyList())
     }
 
-    /** Send 1-bit [rows] to the printer over its (latched or on-demand) link, honouring print settings. */
-    fun sendRows(addr: String, rows: List<ByteArray>, opts: PrintOptions = PrintOptions.fromPrefs(), cancelled: () -> Boolean = { false }) {
+    /** Send 1-bit [rows] to the printer over its (latched or on-demand) link, honouring print settings.
+     * Records the outcome (and a thumbnail) to [History] regardless of where the job came from. */
+    fun sendRows(addr: String, rows: List<ByteArray>, opts: PrintOptions = PrintOptions.fromPrefs(), source: HistorySource = HistorySource.DIRECT, cancelled: () -> Boolean = { false }) {
         val all = decorate(rows, opts)
-        PrinterManager.withLink(addr) { link ->
-            link.requestStatus(); Thread.sleep(400)
-            link.status?.takeIf { it.blocking }?.let { throw IOException(it.problems().joinToString()) }
-            link.send(CatProtocol.begin(opts.darkness))
-            for (grp in all.chunked(8)) {
-                if (cancelled()) { Dbg.d("Engine", "cancelled mid-send"); break }
-                link.send(grp.fold(ByteArray(0)) { acc, r -> acc + CatProtocol.line(r) })
+        var error: String? = null
+        var wasCancelled = false
+        try {
+            PrinterManager.withLink(addr) { link ->
+                link.requestStatus(); Thread.sleep(400)
+                link.status?.takeIf { it.blocking }?.let { throw IOException(it.problems().joinToString()) }
+                link.send(CatProtocol.begin(opts.darkness))
+                for (grp in all.chunked(8)) {
+                    if (cancelled()) { Dbg.d("Engine", "cancelled mid-send"); wasCancelled = true; break }
+                    link.send(grp.fold(ByteArray(0)) { acc, r -> acc + CatProtocol.line(r) })
+                }
+                link.send(CatProtocol.end(opts.feedMm * 8))
+                val t0 = System.currentTimeMillis()
+                Thread.sleep(1500)
+                while (System.currentTimeMillis() - t0 < 8000) {
+                    link.requestStatus(); Thread.sleep(600)
+                    if (link.status?.busy != true) break
+                }
+                Dbg.d("Engine", "send finished in ${System.currentTimeMillis() - t0}ms")
             }
-            link.send(CatProtocol.end(opts.feedMm * 8))
-            val t0 = System.currentTimeMillis()
-            Thread.sleep(1500)
-            while (System.currentTimeMillis() - t0 < 8000) {
-                link.requestStatus(); Thread.sleep(600)
-                if (link.status?.busy != true) break
-            }
-            Dbg.d("Engine", "send finished in ${System.currentTimeMillis() - t0}ms")
+        } catch (e: Throwable) {
+            error = e.message ?: e.javaClass.simpleName
+            throw e
+        } finally {
+            val name = Prefs.printers().firstOrNull { it.first == addr }?.second ?: addr
+            val preview = runCatching { CatProtocol.rowsToBitmap(all.take(History.PREVIEW_ROWS)) }.getOrNull()
+            History.record(name, addr, source, preview, all.size, error == null && !wasCancelled, error ?: if (wasCancelled) "Cancelled" else null)
+            preview?.recycle()
         }
     }
 
     fun printTestPage(addr: String, printerName: String) {
         val bmp = TestPage.render(printerName)
-        try { sendRows(addr, CatProtocol.toRows(bmp)) } finally { bmp.recycle() }
+        try { sendRows(addr, CatProtocol.toRows(bmp), source = HistorySource.TEST) } finally { bmp.recycle() }
     }
 
     /** Manual paper advance, e.g. from a "Feed" button; not part of a print job. */
