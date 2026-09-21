@@ -26,21 +26,25 @@ class PrintApi(private val ctx: Context) {
     private fun route(r: Req): Resp {
         if (r.method == "OPTIONS") return Resp(204, "text/plain", ByteArray(0))
         if (r.path == "/" || r.path == "/index.html") return if (web) Resp.html(WEB_PAGE.replace("@AUTH@", auth.toString())) else throw ApiError(404, "Web interface is disabled")
-        if (!r.path.startsWith("/api")) throw ApiError(404, "Not found")
-        if (!api && !(web && r.path.startsWith("/api/") && r.header("referer") != null)) throw ApiError(404, "API is disabled")
+        // The web page talks to /w/* (same handlers), so the "API" and "Web" switches are independent.
+        val viaWeb = r.path.startsWith("/w/")
+        val path = if (viaWeb) "/api/" + r.path.removePrefix("/w/") else r.path
+        if (!path.startsWith("/api")) throw ApiError(404, "Not found")
+        if (viaWeb && !web) throw ApiError(404, "Web interface is disabled")
+        if (!viaWeb && !api) throw ApiError(404, "API is disabled")
         if (auth && !authorized(r)) throw ApiError(401, "Missing or wrong token: send 'Authorization: Bearer <token>' or 'X-API-Key: <token>'")
         if (r.method == "POST" && !auth) r.header("origin")?.let { o ->
             val host = r.header("host")
             if (host == null || o.substringAfter("://") != host) throw ApiError(403, "Cross-origin request blocked")
         }
         return when {
-            r.path == "/api" && r.method == "GET" -> Resp.json(200, index())
-            r.path == "/api/status" && r.method == "GET" -> Resp.json(200, status())
-            r.path == "/api/history" && r.method == "GET" -> Resp.json(200, history(r.query["limit"]?.toIntOrNull() ?: 20))
-            r.path == "/api/print" && r.method == "POST" -> Resp.json(200, print(r))
-            r.path == "/api/test" && r.method == "POST" -> { val (a, n) = printer(r.query); PrintEngine.printTestPage(a, n); Resp.json(200, JSONObject().put("ok", true)) }
-            r.path == "/api/feed" && r.method == "POST" -> { PrintEngine.feed(printer(r.query).first, r.query["mm"]?.toIntOrNull()?.coerceIn(1, 200) ?: Prefs.feedStepMm); Resp.json(200, JSONObject().put("ok", true)) }
-            r.path == "/api/retract" && r.method == "POST" -> { PrintEngine.retract(printer(r.query).first, r.query["mm"]?.toIntOrNull()?.coerceIn(1, 200) ?: Prefs.retractStepMm); Resp.json(200, JSONObject().put("ok", true)) }
+            path == "/api" && r.method == "GET" -> Resp.json(200, index())
+            path == "/api/status" && r.method == "GET" -> Resp.json(200, status())
+            path == "/api/history" && r.method == "GET" -> Resp.json(200, history(r.query["limit"]?.toIntOrNull() ?: 20))
+            path == "/api/print" && r.method == "POST" -> Resp.json(200, print(r))
+            path == "/api/test" && r.method == "POST" -> { val (a, n) = printer(r.query); PrintEngine.printTestPage(a, n); Resp.json(200, JSONObject().put("ok", true)) }
+            path == "/api/feed" && r.method == "POST" -> { PrintEngine.feed(printer(r.query).first, r.query["mm"]?.toIntOrNull()?.coerceIn(1, 200) ?: Prefs.feedStepMm); Resp.json(200, JSONObject().put("ok", true)) }
+            path == "/api/retract" && r.method == "POST" -> { PrintEngine.retract(printer(r.query).first, r.query["mm"]?.toIntOrNull()?.coerceIn(1, 200) ?: Prefs.retractStepMm); Resp.json(200, JSONObject().put("ok", true)) }
             else -> throw ApiError(404, "Unknown endpoint. GET /api lists them.")
         }
     }
@@ -90,11 +94,11 @@ class PrintApi(private val ctx: Context) {
         val (addr, _) = printer(params)
         val pdf = data.size > 4 && String(data, 0, 4, Charsets.ISO_8859_1) == "%PDF"
         val tmp = File.createTempFile("api", if (pdf) ".pdf" else ".img", ctx.cacheDir)
-        try {
+        return try {
             tmp.writeBytes(data)
             val doc = try { DocSource.open(ctx, Uri.fromFile(tmp), name, pdf) } catch (e: Throwable) { throw ApiError(400, "Not a supported image or PDF") }
-            doc.use {
-                var s = it.defaults()
+            doc.use { _ ->
+                var s = doc.defaults()
                 fun int(k: String, lo: Int, hi: Int) = params[k]?.toIntOrNull()?.coerceIn(lo, hi)
                 fun bool(k: String) = params[k]?.lowercase()?.let { v -> v in setOf("1", "true", "on", "yes") }
                 int("darkness", 0, 100)?.let { v -> s = s.copy(darkness = v) }
@@ -112,17 +116,16 @@ class PrintApi(private val ctx: Context) {
                 params["dither"]?.let { v -> Dither.values().firstOrNull { d -> d.name.equals(v, true) || d.label.equals(v, true) }?.let { d -> s = s.copy(dither = d) } }
                 params["pages"]?.let { v ->
                     val a = v.substringBefore('-').trim().toIntOrNull(); val b = v.substringAfter('-', v).trim().toIntOrNull() ?: a
-                    if (a != null && b != null) s = s.copy(firstPage = (a - 1).coerceIn(0, it.pageCount - 1), lastPage = (b - 1).coerceIn(a - 1, it.pageCount - 1).coerceAtLeast(0))
+                    if (a != null && b != null) { val f = (a - 1).coerceIn(0, doc.pageCount - 1); s = s.copy(firstPage = f, lastPage = (b - 1).coerceIn(f, doc.pageCount - 1)) }
                 }
-                if (s.firstPage > s.lastPage) s = s.copy(firstPage = 0)
                 val rows = ArrayList<ByteArray>()
                 repeat(s.copies) { for (i in s.firstPage..s.lastPage) {
-                    val bmp = Composer.compose(it.page(i), s)
+                    val bmp = Composer.compose(doc.page(i), s)
                     try { rows += CatProtocol.toRows(bmp, s.dither) } finally { bmp.recycle() }
                     if (rows.size > 40_000) throw ApiError(413, "Job too long (max ~5 m of paper)")
                 } }
                 PrintEngine.sendRows(addr, rows, s.options(), HistorySource.API)
-                return JSONObject().put("ok", true).put("pages", s.lastPage - s.firstPage + 1).put("copies", s.copies).put("rows", rows.size)
+                JSONObject().put("ok", true).put("pages", s.lastPage - s.firstPage + 1).put("copies", s.copies).put("rows", rows.size)
             }
         } finally { tmp.delete() }
     }
@@ -166,7 +169,7 @@ button{background:#7c5cff;color:#fff;border:0;font-weight:600}button:disabled{op
 var AUTH=@AUTH@,T=(location.hash.match(/t=([^&]+)/)||[])[1]||"",g=function(i){return document.getElementById(i)};
 if(AUTH){g("tok").style.display="";g("tok").value=T}
 function H(){var t=AUTH?g("tok").value:"";return t?{Authorization:"Bearer "+t}:{}}
-function st(){fetch("/api/status",{headers:H()}).then(function(r){return r.json()}).then(function(j){
+function st(){fetch("/w/status",{headers:H()}).then(function(r){return r.json()}).then(function(j){
 if(!j.ok){g("st").textContent=j.error;return}
 var s=j.status,p=s&&s.problems.length?" · "+s.problems.join(", "):"";
 g("st").textContent=j.selected?(j.printers.filter(function(x){return x.address==j.selected})[0].name+" · "+j.connection+p):"No printer selected in the app"}).catch(function(){g("st").textContent="Can't reach the phone"})}
@@ -175,6 +178,6 @@ g("go").onclick=function(){var f=g("f").files[0];if(!f){g("msg").textContent="Ch
 var q=[];["darkness","copies","size","feed","dither"].forEach(function(k){if(g(k).value)q.push(k+"="+encodeURIComponent(g(k).value))});
 if(g("invert").checked)q.push("invert=1");
 g("go").disabled=true;g("msg").textContent="Printing…";
-fetch("/api/print?"+q.join("&"),{method:"POST",headers:H(),body:f}).then(function(r){return r.json()}).then(function(j){
+fetch("/w/print?"+q.join("&"),{method:"POST",headers:H(),body:f}).then(function(r){return r.json()}).then(function(j){
 g("msg").textContent=j.ok?"Done ✓ ("+j.pages+" page"+(j.pages==1?"":"s")+")":"Failed: "+j.error}).catch(function(e){g("msg").textContent="Failed: "+e}).then(function(){g("go").disabled=false})};
 </script></body></html>"""
