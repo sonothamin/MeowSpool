@@ -2,7 +2,13 @@ package dev.meowspool.ui
 
 import android.content.Intent
 import android.provider.Settings
-import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.graphicsLayer
+import dev.meowspool.Power
+import kotlinx.coroutines.delay
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -23,9 +29,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import dev.meowspool.R
 
-private const val LAST = 3
+private const val LAST = 4
 
-/** Friendly first-run flow: welcome → power on → pick printer → done. */
+/** Friendly first-run flow: welcome → power on → pick printer → stay awake (battery) → done. */
 @Composable
 fun OnboardingScreen(ui: UiState) {
     var step by rememberSaveable { mutableIntStateOf(0) }
@@ -40,7 +46,14 @@ fun OnboardingScreen(ui: UiState) {
                 Row(Modifier.fillMaxWidth().height(48.dp), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
                     if (step < LAST) TextButton(onClick = ui::finishOnboarding) { Text("Skip") }
                 }
-                AnimatedContent(step, Modifier.weight(1f).fillMaxWidth(), label = "onboarding") { s ->
+                AnimatedContent(
+                    step, Modifier.weight(1f).fillMaxWidth(), label = "onboarding",
+                    transitionSpec = {
+                        val fwd = targetState > initialState
+                        (slideInHorizontally(tween(380, easing = FastOutSlowInEasing)) { if (fwd) it / 3 else -it / 3 } + fadeIn(tween(380))) togetherWith
+                            (slideOutHorizontally(tween(260)) { if (fwd) -it / 3 else it / 3 } + fadeOut(tween(200)))
+                    },
+                ) { s ->
                     Column(
                         Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
                         horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
@@ -63,8 +76,8 @@ fun OnboardingScreen(ui: UiState) {
                                 }
                                 Title(when { scanning && found.isEmpty() -> "Looking for your printer…"; found.isEmpty() -> "No printer found yet"; else -> "Tap your printer" })
                                 if (found.isEmpty() && !scanning) Body("Check it’s on and not connected to another phone, then try again.")
-                                found.entries.toList().forEach { (addr, name) ->
-                                    Card(
+                                found.entries.toList().forEachIndexed { idx, (addr, name) ->
+                                    Reveal(300 + idx * 90) { Card(
                                         Modifier.fillMaxWidth().clickable { ui.select(Printer(addr, name)); step = 3 },
                                         colors = CardDefaults.cardColors(containerColor = cs.surfaceContainerHigh),
                                     ) {
@@ -76,13 +89,23 @@ fun OnboardingScreen(ui: UiState) {
                                             }
                                             Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null)
                                         }
-                                    }
+                                    } }
                                 }
+                            }
+                            3 -> {
+                                val bob by rememberInfiniteTransition(label = "bob").animateFloat(-8f, 8f, infiniteRepeatable(tween(900, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "bobY")
+                                Hero {
+                                    if (ui.batteryOk) Icon(Icons.Default.CheckCircle, null, Modifier.size(88.dp), tint = cs.onPrimaryContainer)
+                                    else Icon(Icons.Default.BatteryChargingFull, null, Modifier.size(84.dp).graphicsLayer { translationY = bob }, tint = cs.onPrimaryContainer)
+                                }
+                                Title(if (ui.batteryOk) "Running in the background" else "Let MeowSpool stay awake")
+                                Body(if (ui.batteryOk) "All good: printing and the print server keep working with the screen off."
+                                    else "Android puts apps to sleep to save power. To print with the screen off, or use MeowSpool as a print server for other devices, switch battery optimisation off for it.")
                             }
                             else -> {
                                 Hero { Icon(Icons.Default.CheckCircle, null, Modifier.size(88.dp), tint = cs.onPrimaryContainer) }
                                 Title("You’re all set!")
-                                Body("${ui.selectedPrinter?.name ?: "Your printer"} is connected. Print a test page to see it purr.")
+                                Body("${ui.selectedPrinter?.name ?: "Your printer"} is connected. Print a test page to see it purr. You can turn on the print server later in the menu.")
                                 if (!ui.serviceOn) Card(colors = CardDefaults.cardColors(containerColor = cs.secondaryContainer)) {
                                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                         Text("One last step: turn on “MeowSpool” in your phone’s print settings so other apps can print here.", style = MaterialTheme.typography.bodyMedium)
@@ -106,6 +129,13 @@ fun OnboardingScreen(ui: UiState) {
                             if (!scanning) BigButton("Scan again", Icons.Default.Refresh) { ui.requestScan() }
                             TextButton(onClick = { step = 1 }) { Text("Back") }
                         }
+                        3 -> {
+                            if (ui.batteryOk) BigButton("Continue") { step = 4 }
+                            else {
+                                BigButton("Allow background use", Icons.Default.BatteryChargingFull) { Power.request(ctx) }
+                                TextButton(onClick = { step = 4 }) { Text("Not now") }
+                            }
+                        }
                         else -> {
                             OutlinedButton(onClick = ui::requestTestPrint, enabled = ui.canTest, modifier = Modifier.fillMaxWidth().height(52.dp)) {
                                 Icon(Icons.Default.ReceiptLong, null); Spacer(Modifier.width(8.dp)); Text(if (ui.testing) "Printing…" else "Print a test page")
@@ -119,16 +149,41 @@ fun OnboardingScreen(ui: UiState) {
     }
 }
 
+/** Fades and floats its content in after [delay] ms without shifting layout. */
 @Composable
-private fun Hero(content: @Composable () -> Unit) =
-    Box(Modifier.size(160.dp).background(MaterialTheme.colorScheme.primaryContainer, CircleShape), contentAlignment = Alignment.Center) { content() }
+private fun Reveal(delay: Int, content: @Composable () -> Unit) {
+    var on by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { delay(delay.toLong()); on = true }
+    val a by animateFloatAsState(if (on) 1f else 0f, tween(450, easing = FastOutSlowInEasing), label = "reveal")
+    Box(Modifier.graphicsLayer { alpha = a; translationY = (1f - a) * 36f }) { content() }
+}
+
+/** Icon badge that springs in and sends out soft pulse rings. */
+@Composable
+private fun Hero(content: @Composable () -> Unit) {
+    val pulse by rememberInfiniteTransition(label = "pulse").animateFloat(0f, 1f, infiniteRepeatable(tween(2400, easing = LinearEasing)), label = "p")
+    val pop = remember { Animatable(0.5f) }
+    LaunchedEffect(Unit) { pop.animateTo(1f, spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow)) }
+    val ring = MaterialTheme.colorScheme.primary
+    Box(
+        Modifier.size(200.dp).graphicsLayer { scaleX = pop.value; scaleY = pop.value; alpha = pop.value.coerceIn(0f, 1f) }.drawBehind {
+            listOf(0f, 0.5f).forEach { off ->
+                val t = (pulse + off) % 1f
+                drawCircle(ring.copy(alpha = (1f - t) * 0.22f), radius = 80.dp.toPx() + t * 20.dp.toPx())
+            }
+        },
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(Modifier.size(160.dp).background(MaterialTheme.colorScheme.primaryContainer, CircleShape), contentAlignment = Alignment.Center) { content() }
+    }
+}
 
 @Composable
-private fun Title(text: String) = Text(text, style = MaterialTheme.typography.headlineMedium, textAlign = TextAlign.Center)
+private fun Title(text: String) = Reveal(150) { Text(text, style = MaterialTheme.typography.headlineMedium, textAlign = TextAlign.Center) }
 
 @Composable
 private fun Body(text: String) =
-    Text(text, style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Reveal(280) { Text(text, style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant) }
 
 @Composable
 private fun BigButton(text: String, icon: androidx.compose.ui.graphics.vector.ImageVector? = null, onClick: () -> Unit) =
@@ -140,9 +195,8 @@ private fun BigButton(text: String, icon: androidx.compose.ui.graphics.vector.Im
 @Composable
 private fun Dots(step: Int) = Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
     repeat(LAST + 1) { i ->
-        Box(
-            Modifier.height(8.dp).width(if (i == step) 24.dp else 8.dp)
-                .background(if (i == step) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant, CircleShape),
-        )
+        val w by animateDpAsState(if (i == step) 24.dp else 8.dp, spring(Spring.DampingRatioMediumBouncy), label = "dotW")
+        val c by animateColorAsState(if (i == step) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant, label = "dotC")
+        Box(Modifier.height(8.dp).width(w).background(c, CircleShape))
     }
 }
