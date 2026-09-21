@@ -140,6 +140,22 @@ class UiState(
         }
     }
 
+    var reprinting by mutableStateOf(false); private set
+    /** Send a past job's exact page data again (to its original printer if still saved, else the selected one). */
+    fun reprint(e: HistoryEntry) {
+        if (reprinting) return
+        val addr = saved.firstOrNull { it.addr == e.printerAddr }?.addr ?: selected ?: run { say("Add a printer first"); return }
+        reprinting = true
+        scope.launch(Dispatchers.IO) {
+            val err = try {
+                val rows = History.loadRows(e) ?: throw java.io.IOException("Print data is no longer available")
+                PrintEngine.sendRows(addr, rows, PrintOptions(e.darkness, e.feedMm, false, false, true), HistorySource.REPRINT); null
+            } catch (t: Throwable) { Dbg.e("UI", "reprint failed", t); t.message ?: "Print failed" }
+            reprinting = false
+            say(if (err == null) "Sent to printer" else "Reprint failed: $err")
+        }
+    }
+
     fun feed() {
         val p = selectedPrinter ?: return
         scope.launch(Dispatchers.IO) { try { PrintEngine.feed(p.addr, feedStepMm) } catch (e: Throwable) { Dbg.e("UI", "feed failed", e); say("Feed failed: ${e.message ?: "error"}") } }

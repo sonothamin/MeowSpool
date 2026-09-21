@@ -74,7 +74,7 @@ object PrintEngine {
         } finally {
             val name = Prefs.printers().firstOrNull { it.first == addr }?.second ?: addr
             val preview = runCatching { CatProtocol.rowsToBitmap(all.take(History.PREVIEW_ROWS)) }.getOrNull()
-            History.record(name, addr, source, preview, all.size, error == null && !wasCancelled, error ?: if (wasCancelled) "Cancelled" else null)
+            History.record(name, addr, source, preview, all.size, error == null && !wasCancelled, error ?: if (wasCancelled) "Cancelled" else null, all, opts.darkness, opts.feedMm)
             preview?.recycle()
         }
     }

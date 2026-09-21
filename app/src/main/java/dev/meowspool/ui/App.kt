@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import dev.meowspool.History
 import dev.meowspool.R
 import kotlinx.coroutines.launch
 
@@ -57,11 +58,13 @@ fun MeowSpoolRoot(ui: UiState) {
 @Composable
 private fun MainShell(ui: UiState) {
     var dest by rememberSaveable { mutableStateOf(Dest.Home) }
+    var detail by rememberSaveable { mutableStateOf<String?>(null) }
     val drawer = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     BackHandler(drawer.isOpen) { scope.launch { drawer.close() } }
     BackHandler(dest != Dest.Home && drawer.isClosed) { dest = Dest.Home }
-    fun go(d: Dest) { dest = d; scope.launch { drawer.close() } }
+    BackHandler(detail != null && drawer.isClosed) { detail = null }
+    fun go(d: Dest) { dest = d; detail = null; scope.launch { drawer.close() } }
 
     // Drawer slides in from the right: mirror the layout direction around it, keep content LTR.
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
@@ -76,9 +79,9 @@ private fun MainShell(ui: UiState) {
                             title = {
                                 if (dest == Dest.Home) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     Icon(painterResource(R.drawable.ic_meowspool), null, Modifier.size(28.dp)); Text(dest.title)
-                                } else Text(dest.title)
+                                } else Text(if (dest == Dest.History && detail != null) "Print details" else dest.title)
                             },
-                            navigationIcon = { if (dest != Dest.Home) IconButton(onClick = { dest = Dest.Home }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back") } },
+                            navigationIcon = { if (dest != Dest.Home) IconButton(onClick = { if (detail != null) detail = null else dest = Dest.Home }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back") } },
                             actions = { IconButton(onClick = { scope.launch { drawer.open() } }) { Icon(Icons.Default.Menu, "Menu") } },
                         )
                     },
@@ -98,7 +101,11 @@ private fun MainShell(ui: UiState) {
                         Dest.Home -> HomeScreen(ui, pad, ::go)
                         Dest.Direct -> PrintFileScreen(ui, pad, ::go)
                         Dest.Devices -> DevicesScreen(ui, pad)
-                        Dest.History -> HistoryScreen(pad)
+                        Dest.History -> {
+                            val entries by History.entries.collectAsState()
+                            val open = entries.firstOrNull { it.id == detail }
+                            if (open != null) HistoryDetailScreen(ui, pad, open) { detail = null } else HistoryScreen(pad) { detail = it.id }
+                        }
                         Dest.Paper -> PaperScreen(ui, pad)
                         Dest.Print -> PrintSettingsScreen(ui, pad)
                         Dest.Server -> ServerScreen(ui, pad)
