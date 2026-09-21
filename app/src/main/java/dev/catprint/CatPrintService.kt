@@ -122,7 +122,7 @@ class CatPrintService : PrintService() {
                     when {
                         job.isCancelled -> {}
                         err == null -> { job.complete(); Dbg.d(T, "job complete $key") }
-                        else -> job.fail(err.message ?: "Print failed")
+                        else -> { job.fail(err.message ?: "Print failed"); Dbg.d(T, "job marked failed") }
                     }
                 } catch (e: Throwable) { Dbg.e(T, "could not finish job $key", e) }
                 cancelled.remove(key)
@@ -135,8 +135,15 @@ class CatPrintService : PrintService() {
         try {
             // 1) render every page to 1-bit rows before touching the radio
             val rows = ArrayList<ByteArray>()
-            pfd.use {
-                val renderer = PdfRenderer(pfd)
+            // The framework hands us a pipe; PdfRenderer needs a seekable file, so spool to cache first.
+            val tmp = java.io.File.createTempFile("job", ".pdf", cacheDir)
+            val seekable = try {
+                android.os.ParcelFileDescriptor.AutoCloseInputStream(pfd).use { i -> tmp.outputStream().use { o -> i.copyTo(o) } }
+                Dbg.d(T, "spooled ${tmp.length()}B")
+                android.os.ParcelFileDescriptor.open(tmp, android.os.ParcelFileDescriptor.MODE_READ_ONLY)
+            } catch (e: Throwable) { tmp.delete(); throw e }
+            try { seekable.use {
+                val renderer = PdfRenderer(seekable)
                 try {
                     Dbg.d(T, "pdf pages=${renderer.pageCount}")
                     for (i in 0 until renderer.pageCount) {
@@ -157,7 +164,7 @@ class CatPrintService : PrintService() {
                         } finally { page.close() }
                     }
                 } finally { renderer.close() }
-            }
+            } } finally { tmp.delete() }
             // 2) send over the latched link
             PrintEngine.sendRows(addr, rows) { cancelled.remove(key) }
         } finally { PrinterManager.release(addr) }
