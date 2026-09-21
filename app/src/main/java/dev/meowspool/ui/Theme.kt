@@ -83,16 +83,22 @@ private fun typographyFor(heading: FontFamily?, body: FontFamily?): Typography {
     )
 }
 
-/** [mode]: 0 system, 1 light, 2 dark. Dynamic (wallpaper) colour on Android 12+ when [dynamic]. [font] picks the UI typeface. */
+/** [mode]: 0 system, 1 light, 2 dark. Dynamic (wallpaper) colour on Android 12+ when [dynamic].
+ * [amoled] flattens dark-mode backgrounds/surfaces to true black (OLED power saving, no grey haze). [font] picks the UI typeface. */
 @Composable
-fun MeowSpoolTheme(mode: Int, dynamic: Boolean, font: UiFont = UiFont.DEFAULT, content: @Composable () -> Unit) {
+fun MeowSpoolTheme(mode: Int, dynamic: Boolean, font: UiFont = UiFont.DEFAULT, amoled: Boolean = false, content: @Composable () -> Unit) {
     val dark = when (mode) { 1 -> false; 2 -> true; else -> isSystemInDarkTheme() }
     val ctx = LocalContext.current
-    val scheme = when {
+    var scheme = when {
         dynamic && Build.VERSION.SDK_INT >= 31 -> if (dark) dynamicDarkColorScheme(ctx) else dynamicLightColorScheme(ctx)
         dark -> Dark
         else -> Light
     }
+    if (dark && amoled) scheme = scheme.copy(
+        background = Color.Black, surface = Color.Black,
+        surfaceContainerLowest = Color.Black, surfaceContainerLow = Color(0xFF0A0A0A),
+        surfaceContainer = Color(0xFF0F0F0F), surfaceContainerHigh = Color(0xFF161616), surfaceContainerHighest = Color(0xFF1C1C1C),
+    )
     // If a picked font's asset never fetched (e.g. built offline), fall back to Default rather than crash.
     val heading = remember(font) { headingFamily(ctx, font) }
     val body = remember(heading, font.titlesOnly) { if (font.titlesOnly) InterFamily else heading }

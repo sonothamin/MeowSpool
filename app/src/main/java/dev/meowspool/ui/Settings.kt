@@ -187,6 +187,11 @@ fun AppearanceScreen(ui: UiState, pad: PaddingValues) {
                     trailingContent = { Switch(ui.dynamicColor, { ui.dynamicColor = it }) },
                 )
                 ListItem(
+                    headlineContent = { Text("AMOLED black") }, supportingContent = { Text("True black backgrounds in dark mode, easier on OLED screens") },
+                    leadingContent = { Icon(Icons.Default.Contrast, null) }, colors = clear(),
+                    trailingContent = { Switch(ui.amoled, { ui.amoled = it }) },
+                )
+                ListItem(
                     headlineContent = { Text("Device pictures") }, supportingContent = { Text("Show a picture of your printer on Home when its model is recognised") },
                     leadingContent = { Icon(Icons.Default.Image, null) }, colors = clear(),
                     trailingContent = { Switch(ui.deviceAvatars, { ui.deviceAvatars = it }) },

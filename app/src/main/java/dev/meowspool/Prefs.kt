@@ -104,6 +104,9 @@ object Prefs {
     var deviceAvatars: Boolean
         get() = sp.getBoolean("deviceAvatars", true)
         set(v) = sp.edit().putBoolean("deviceAvatars", v).apply()
+    var amoled: Boolean
+        get() = sp.getBoolean("amoled", false)
+        set(v) = sp.edit().putBoolean("amoled", v).apply()
     /** Name of a dev.meowspool.ui.UiFont; blank/unknown falls back to the platform default. */
     var uiFont: String
         get() = sp.getString("uiFont", "") ?: ""

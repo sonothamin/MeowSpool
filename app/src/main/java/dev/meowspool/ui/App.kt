@@ -46,7 +46,7 @@ private val sections = listOf(
 
 @Composable
 fun MeowSpoolRoot(ui: UiState) {
-    MeowSpoolTheme(ui.themeMode, ui.dynamicColor, ui.uiFont) {
+    MeowSpoolTheme(ui.themeMode, ui.dynamicColor, ui.uiFont, ui.amoled) {
         Box(Modifier.fillMaxSize()) {
             if (ui.onboarding) OnboardingScreen(ui) else MainShell(ui)
             // Overlaid on top of whichever screen triggered it, so "test print" always confirms first.
