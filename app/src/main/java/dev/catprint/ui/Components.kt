@@ -1,27 +1,23 @@
 package dev.catprint.ui
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.ui.composed
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import dev.catprint.Conn
 import dev.catprint.PState
 import dev.catprint.PrinterStatus
 
-/** What the user should see + do, derived from connection + printer status. */
-data class Summary(val title: String, val detail: String?, val level: Level, val loading: Boolean = false)
 enum class Level { OK, WARN, ERROR, INFO }
+data class Summary(val title: String, val detail: String?, val level: Level, val loading: Boolean = false)
 
 fun PrinterStatus.hint(): String? = when {
     outOfPaper -> "Load a paper roll, then it resumes automatically."
@@ -47,53 +43,46 @@ fun summarize(s: PState): Summary {
     }
 }
 
-@Composable
-fun StatusCard(name: String, sum: Summary, status: PrinterStatus?, showRetry: Boolean, onRetry: () -> Unit) {
-    val (bg, fg) = when (sum.level) {
-        Level.OK -> MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.onPrimaryContainer
-        Level.WARN -> MaterialTheme.colorScheme.tertiaryContainer to MaterialTheme.colorScheme.onTertiaryContainer
-        Level.ERROR -> MaterialTheme.colorScheme.errorContainer to MaterialTheme.colorScheme.onErrorContainer
-        Level.INFO -> MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.onSurfaceVariant
+data class StatusItem(val icon: ImageVector, val label: String, val problem: Boolean, val warn: Boolean = false)
+
+fun statusItems(s: PState): List<StatusItem> {
+    val conn = when (s.conn) {
+        Conn.CONNECTED -> StatusItem(Icons.Default.Bluetooth, "Connected", false)
+        Conn.CONNECTING -> StatusItem(Icons.Default.BluetoothSearching, "Connecting", false)
+        Conn.ERROR -> StatusItem(Icons.Default.BluetoothDisabled, "Disconnected", true)
+        Conn.IDLE -> StatusItem(Icons.Default.BluetoothDisabled, "Not connected", false)
     }
-    val container by animateColorAsState(bg, label = "statusBg")
-    val icon = when (sum.level) {
-        Level.OK -> Icons.Default.CheckCircle
-        Level.WARN, Level.ERROR -> Icons.Default.Warning
-        Level.INFO -> Icons.Default.Info
-    }
-    Card(
-        Modifier.fillMaxWidth().semantics(mergeDescendants = true) { contentDescription = "$name: ${sum.title}" },
-        colors = CardDefaults.cardColors(containerColor = container, contentColor = fg),
-    ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(name, style = MaterialTheme.typography.labelLarge)
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                if (sum.loading) CircularProgressIndicator(Modifier.size(28.dp), strokeWidth = 3.dp, color = fg)
-                else Icon(icon, null, Modifier.size(28.dp))
-                Column(Modifier.weight(1f)) {
-                    Text(sum.title, style = MaterialTheme.typography.titleLarge)
-                    sum.detail?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
-                }
-            }
-            if (status != null) StatusChips(status)
-            if (showRetry) FilledTonalButton(onClick = onRetry) { Icon(Icons.Default.Refresh, null); Spacer(Modifier.width(8.dp)); Text("Reconnect") }
-        }
-    }
+    val st = s.status ?: return listOf(conn)
+    return listOf(
+        conn,
+        StatusItem(Icons.Default.Description, if (st.outOfPaper) "No paper" else "Paper OK", st.outOfPaper),
+        StatusItem(if (st.coverOpen) Icons.Default.LockOpen else Icons.Default.Lock, if (st.coverOpen) "Cover open" else "Cover closed", st.coverOpen),
+        StatusItem(Icons.Default.Thermostat, if (st.overheat) "Overheated" else "Temp OK", st.overheat),
+        StatusItem(if (st.lowPower) Icons.Default.BatteryAlert else Icons.Default.BatteryFull, if (st.lowPower) "Low battery" else "Battery OK", st.lowPower, warn = true),
+        when {
+            st.paused -> StatusItem(Icons.Default.PauseCircle, "Paused", true, warn = true)
+            st.busy || s.printing -> StatusItem(Icons.Default.HourglassTop, "Busy", false)
+            else -> StatusItem(Icons.Default.CheckCircle, "Idle", false)
+        },
+    )
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun StatusChips(status: PrinterStatus) {
+fun StatusChips(items: List<StatusItem>, tint: Color = MaterialTheme.colorScheme.onSurface) {
     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        status.chips().forEach { (label, problem) ->
+        items.forEach { it ->
+            val bad = it.problem
+            val (bg, fg) = when {
+                bad && it.warn -> MaterialTheme.colorScheme.tertiary to MaterialTheme.colorScheme.onTertiary
+                bad -> MaterialTheme.colorScheme.error to MaterialTheme.colorScheme.onError
+                else -> Color.Transparent to tint
+            }
             AssistChip(
-                onClick = {}, enabled = true, label = { Text(label) },
-                leadingIcon = { Icon(if (problem) Icons.Default.Warning else Icons.Default.Check, null, Modifier.size(18.dp)) },
-                colors = AssistChipDefaults.assistChipColors(
-                    containerColor = if (problem) MaterialTheme.colorScheme.error else androidx.compose.ui.graphics.Color.Transparent,
-                    labelColor = if (problem) MaterialTheme.colorScheme.onError else LocalContentColor.current,
-                    leadingIconContentColor = if (problem) MaterialTheme.colorScheme.onError else LocalContentColor.current,
-                ),
+                onClick = {}, label = { Text(it.label) },
+                leadingIcon = { Icon(it.icon, null, Modifier.size(18.dp)) },
+                colors = AssistChipDefaults.assistChipColors(containerColor = bg, labelColor = fg, leadingIconContentColor = fg),
+                border = if (bad) null else AssistChipDefaults.assistChipBorder(enabled = true, borderColor = tint.copy(alpha = 0.3f)),
             )
         }
     }
@@ -103,4 +92,15 @@ private fun StatusChips(status: PrinterStatus) {
 fun SectionHeader(text: String) =
     Text(text, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(top = 8.dp))
 
-fun Modifier.verticalScrollCompat(): Modifier = composed { this.verticalScroll(rememberScrollState()) }
+/** Centred, max-width scrolling page (adapts to tablets / landscape). */
+@Composable
+fun Page(pad: PaddingValues, content: LazyListScope.() -> Unit) {
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+        LazyColumn(
+            Modifier.fillMaxHeight().widthIn(max = 640.dp).fillMaxWidth(),
+            contentPadding = PaddingValues(16.dp, pad.calculateTopPadding() + 8.dp, 16.dp, pad.calculateBottomPadding() + 96.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            content = content,
+        )
+    }
+}

@@ -41,9 +41,7 @@ class CatPrintService : PrintService() {
         Prefs.printers().filter { only == null || it.first in only }.map { (addr, name) ->
             val id: PrinterId = generatePrinterId(addr)
             val caps = PrinterCapabilitiesInfo.Builder(id)
-                .addMediaSize(MediaSize("cat58_roll", "58 mm roll (long)", 2283, 11000), true)
-                .addMediaSize(MediaSize("cat58_100", "58 × 100 mm", 2283, 3937), false)
-                .addMediaSize(MediaSize("cat58_50", "58 × 50 mm label", 2283, 1969), false)
+                .apply { val sel = Paper.selected().id; Paper.all().forEach { addMediaSize(MediaSize(it.id, it.name, Paper.WIDTH_MILS, it.heightMils), it.id == sel) } }
                 .addResolution(PrintAttributes.Resolution("r203", "203 dpi", 203, 203), true)
                 .setColorModes(PrintAttributes.COLOR_MODE_MONOCHROME, PrintAttributes.COLOR_MODE_MONOCHROME)
                 .setMinMargins(PrintAttributes.Margins(Paper.SIDE_MARGIN_MILS, 0, Paper.SIDE_MARGIN_MILS, 0))

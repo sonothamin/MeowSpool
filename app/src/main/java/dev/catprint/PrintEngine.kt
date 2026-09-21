@@ -5,25 +5,49 @@ import java.io.IOException
 import java.text.DateFormat
 import java.util.Date
 
-/** Paper: 58 mm roll, 48 mm (384 dots @ 203 dpi) printable, centred. */
+data class PaperPreset(val id: String, val name: String, val lengthMm: Int?, val builtIn: Boolean) {
+    val heightMils get() = lengthMm?.let { Paper.mils(it) } ?: 11000
+    val sizeText get() = "${Paper.PAPER_MM.toInt()} × ${lengthMm?.toString() ?: "continuous"}${if (lengthMm != null) " mm" else ""}"
+}
+
+/** All presets are 58 mm paper with 48 mm (384 dots @ 203 dpi) printable, centred. */
 object Paper {
     const val PAPER_MM = 58f
     const val PRINTABLE_MM = 48f
     const val SIDE_MARGIN_MILS = 197   // (58-48)/2 mm
+    const val WIDTH_MILS = 2283
+    fun mils(mm: Int) = (mm / 25.4f * 1000).toInt()
+
+    val builtIns = listOf(
+        PaperPreset("roll", "58 mm roll (continuous)", null, true),
+        PaperPreset("l100", "58 × 100 mm", 100, true),
+        PaperPreset("l50", "58 × 50 mm label", 50, true),
+        PaperPreset("l30", "58 × 30 mm label", 30, true),
+    )
+    fun all() = builtIns + Prefs.customPapers().map { PaperPreset(it.first, it.second, it.third, false) }
+    fun selected() = all().firstOrNull { it.id == Prefs.paperId } ?: builtIns[0]
 }
 
 object PrintEngine {
-    /** Send 1-bit [rows] to the printer over its (latched or on-demand) link. */
+    /** Apply the tear-off line settings around the page rows. */
+    fun decorate(rows: List<ByteArray>): List<ByteArray> {
+        if (!Prefs.lineBefore && !Prefs.lineAfter) return rows
+        val sep = CatProtocol.separator(Prefs.lineDashed)
+        return (if (Prefs.lineBefore) sep else emptyList()) + rows + (if (Prefs.lineAfter) sep else emptyList())
+    }
+
+    /** Send 1-bit [rows] to the printer over its (latched or on-demand) link, honouring print settings. */
     fun sendRows(addr: String, rows: List<ByteArray>, cancelled: () -> Boolean = { false }) {
+        val all = decorate(rows)
         PrinterManager.withLink(addr) { link ->
             link.requestStatus(); Thread.sleep(400)
             link.status?.takeIf { it.blocking }?.let { throw IOException(it.problems().joinToString()) }
             link.send(CatProtocol.begin(Prefs.darkness))
-            for (grp in rows.chunked(8)) {
+            for (grp in all.chunked(8)) {
                 if (cancelled()) { Dbg.d("Engine", "cancelled mid-send"); break }
                 link.send(grp.fold(ByteArray(0)) { acc, r -> acc + CatProtocol.line(r) })
             }
-            link.send(CatProtocol.end())
+            link.send(CatProtocol.end(Prefs.feedMm * 8))
             val t0 = System.currentTimeMillis()
             Thread.sleep(1500)
             while (System.currentTimeMillis() - t0 < 8000) {
@@ -63,8 +87,8 @@ object TestPage {
         y += 32; c.drawText("Test page", W / 2f, y, text)
         text.textSize = 18f; text.textAlign = Paint.Align.LEFT
         y += 34; c.drawText("Printer: $printer", 16f, y, text)
-        y += 24; c.drawText("Paper: ${Paper.PAPER_MM.toInt()} mm (${Paper.PRINTABLE_MM.toInt()} mm printable)", 16f, y, text)
-        y += 24; c.drawText("Darkness: ${Prefs.darkness}%", 16f, y, text)
+        y += 24; c.drawText("Paper: ${Paper.selected().name}", 16f, y, text)
+        y += 24; c.drawText("Darkness ${Prefs.darkness}% · ${Dither.fromPref().label} · feed ${Prefs.feedMm} mm", 16f, y, text)
         y += 24; c.drawText(DateFormat.getDateTimeInstance().format(Date()), 16f, y, text)
 
         // Ruler: 1 tick per mm, longer every 5, numbered every 10.

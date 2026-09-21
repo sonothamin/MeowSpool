@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-/** Debug logger: verbose lines only when the Settings switch is on; errors always hit logcat. */
+/** Debug logger: always on; kept in a ring buffer and shown in the app's Debug log screen. */
 object Dbg {
     private const val MAX = 1000
     private val buf = ArrayDeque<String>()
@@ -13,14 +13,13 @@ object Dbg {
     val version = MutableStateFlow(0)
 
     fun d(tag: String, msg: String) {
-        if (!Prefs.debug) return
         Log.d("Meow", "[$tag] $msg")
         add("D", tag, msg)
     }
 
     fun e(tag: String, msg: String, t: Throwable? = null) {
         Log.e("Meow", "[$tag] $msg", t)
-        if (Prefs.debug) add("E", tag, msg + (t?.let { " — ${it.javaClass.simpleName}: ${it.message}" } ?: ""))
+        add("E", tag, msg + (t?.let { " — ${it.javaClass.simpleName}: ${it.message}" } ?: ""))
     }
 
     private fun add(lvl: String, tag: String, msg: String) {

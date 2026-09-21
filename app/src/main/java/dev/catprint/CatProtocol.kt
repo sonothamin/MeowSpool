@@ -44,9 +44,9 @@ object CatProtocol {
         return o.toByteArray()
     }
 
-    fun end(): ByteArray {
+    fun end(feedLines: Int = 96): ByteArray {
         val o = ByteArrayOutputStream()
-        o.write(packet(0xA1, b(0x60, 0x00)))                     // feed ~96 lines
+        o.write(packet(0xA1, b(feedLines and 0xFF, (feedLines shr 8) and 0xFF))) // feed
         o.write(packet(0xA6, b(0xAA, 0x55, 0x17, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x17))) // lattice end
         o.write(packet(0xA3, b(0x00)))
         return o.toByteArray()
@@ -54,8 +54,18 @@ object CatProtocol {
 
     fun line(row: ByteArray) = packet(0xA2, row)
 
-    /** Floyd–Steinberg dither of a WIDTH-wide bitmap into 1-bit rows (LSB = leftmost, 1 = black). */
-    fun toRows(src: Bitmap): List<ByteArray> {
+    private val BAYER = intArrayOf(0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5)
+
+    /** Solid or dashed horizontal rule (with breathing room) as raw rows, for tear-off lines. */
+    fun separator(dashed: Boolean): List<ByteArray> {
+        val blank = ByteArray(BYTES)
+        val line = ByteArray(BYTES)
+        for (x in 0 until WIDTH) if (!dashed || x % 24 < 16) line[x shr 3] = (line[x shr 3].toInt() or (1 shl (x and 7))).toByte()
+        return List(6) { blank } + List(3) { line } + List(6) { blank }
+    }
+
+    /** Dither a WIDTH-wide bitmap into 1-bit rows (LSB = leftmost, 1 = black). */
+    fun toRows(src: Bitmap, mode: Dither = Dither.fromPref()): List<ByteArray> {
         val h = src.height
         val px = IntArray(WIDTH * h)
         src.getPixels(px, 0, WIDTH, 0, 0, WIDTH, h)
@@ -66,18 +76,28 @@ object CatProtocol {
             for (x in 0 until WIDTH) {
                 val i = y * WIDTH + x
                 val old = g[i]
-                val nw = if (old < 128f) 0f else 255f
-                val err = old - nw
+                val t = if (mode == Dither.ORDERED) (BAYER[(y and 3) * 4 + (x and 3)] + 0.5f) * 255f / 16f else 128f
+                val nw = if (old < t) 0f else 255f
                 if (nw == 0f) row[x shr 3] = (row[x shr 3].toInt() or (1 shl (x and 7))).toByte()
-                if (x + 1 < WIDTH) g[i + 1] += err * 7 / 16
-                if (y + 1 < h) {
-                    if (x > 0) g[i + WIDTH - 1] += err * 3 / 16
-                    g[i + WIDTH] += err * 5 / 16
-                    if (x + 1 < WIDTH) g[i + WIDTH + 1] += err / 16
+                if (mode == Dither.FLOYD) {
+                    val err = old - nw
+                    if (x + 1 < WIDTH) g[i + 1] += err * 7 / 16
+                    if (y + 1 < h) {
+                        if (x > 0) g[i + WIDTH - 1] += err * 3 / 16
+                        g[i + WIDTH] += err * 5 / 16
+                        if (x + 1 < WIDTH) g[i + WIDTH + 1] += err / 16
+                    }
                 }
             }
             rows.add(row)
         }
         return rows
     }
+}
+
+enum class Dither(val label: String, val hint: String) {
+    FLOYD("Smooth", "Error diffusion (Floyd–Steinberg): best for photos and gradients."),
+    THRESHOLD("Sharp", "Pure black & white: best for text, barcodes and QR codes."),
+    ORDERED("Pattern", "Regular dot pattern: even tone with no noise.");
+    companion object { fun fromPref() = values().firstOrNull { it.name == Prefs.dither } ?: FLOYD }
 }

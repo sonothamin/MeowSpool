@@ -34,10 +34,6 @@ object Prefs {
         get() = sp.getString("selected", null)
         set(v) = sp.edit().putString("selected", v).apply()
 
-    var debug: Boolean
-        get() = sp.getBoolean("debug", false)
-        set(v) = sp.edit().putBoolean("debug", v).apply()
-
     var darkness: Int
         get() = sp.getInt("darkness", 60)
         set(v) = sp.edit().putInt("darkness", v).apply()
@@ -46,4 +42,44 @@ object Prefs {
     var lastCrash: String?
         get() = sp.getString("lastCrash", null)
         set(v) { sp.edit().apply { if (v == null) remove("lastCrash") else putString("lastCrash", v) }.commit() }
+
+    // Paper presets (built-ins live in [Paper]); custom ones stored as "id|name|lengthMm".
+    var paperId: String
+        get() = sp.getString("paperId", "roll")!!
+        set(v) = sp.edit().putString("paperId", v).apply()
+    fun customPapers(): List<Triple<String, String, Int>> = sp.getStringSet("papers", emptySet())!!.mapNotNull {
+        val s = it.split('|'); if (s.size == 3) Triple(s[0], s[1], s[2].toIntOrNull() ?: return@mapNotNull null) else null
+    }.sortedBy { it.first }
+    fun addPaper(id: String, name: String, mm: Int) {
+        val s = sp.getStringSet("papers", emptySet())!!.toMutableSet(); s.add("$id|${name.replace('|', ' ')}|$mm")
+        sp.edit().putStringSet("papers", s).apply()
+    }
+    fun removePaper(id: String) {
+        sp.edit().putStringSet("papers", sp.getStringSet("papers", emptySet())!!.filterNot { it.startsWith("$id|") }.toSet()).apply()
+        if (paperId == id) paperId = "roll"
+    }
+
+    var dither: String
+        get() = sp.getString("dither", "FLOYD")!!
+        set(v) = sp.edit().putString("dither", v).apply()
+    var feedMm: Int
+        get() = sp.getInt("feedMm", 12)
+        set(v) = sp.edit().putInt("feedMm", v).apply()
+    var lineBefore: Boolean
+        get() = sp.getBoolean("lineBefore", false)
+        set(v) = sp.edit().putBoolean("lineBefore", v).apply()
+    var lineAfter: Boolean
+        get() = sp.getBoolean("lineAfter", false)
+        set(v) = sp.edit().putBoolean("lineAfter", v).apply()
+    var lineDashed: Boolean
+        get() = sp.getBoolean("lineDashed", true)
+        set(v) = sp.edit().putBoolean("lineDashed", v).apply()
+
+    /** 0 = follow system, 1 = light, 2 = dark. */
+    var theme: Int
+        get() = sp.getInt("theme", 0)
+        set(v) = sp.edit().putInt("theme", v).apply()
+    var dynamicColor: Boolean
+        get() = sp.getBoolean("dynamic", true)
+        set(v) = sp.edit().putBoolean("dynamic", v).apply()
 }
