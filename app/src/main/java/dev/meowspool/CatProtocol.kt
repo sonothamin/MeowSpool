@@ -10,7 +10,7 @@ import java.io.ByteArrayOutputStream
  */
 object CatProtocol {
     const val WIDTH = 384            // dots per line (48 bytes)
-    private const val BYTES = WIDTH / 8
+    const val BYTES = WIDTH / 8
 
     private fun crc8(d: ByteArray): Int {
         var c = 0
