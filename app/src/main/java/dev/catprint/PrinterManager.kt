@@ -114,11 +114,11 @@ object PrinterManager {
     }
 
     /** Run [block] with exclusive use of the (already latched, else on-demand) link. */
-    fun <T> withLink(addr: String, block: (CatPrinterLink) -> T): T {
+    fun <R> withLink(addr: String, block: (CatPrinterLink) -> R): R {
         lock.lock()
         try {
             if (links[addr]?.connected != true) {
-                Dbg.d(Companion.T, "withLink: not latched yet, connecting on demand")
+                Dbg.d(T, "withLink: not latched yet, connecting on demand")
                 if (!ensureConnected(addr)) throw IOException(state(addr).error ?: "Cannot connect to printer")
             }
             update(addr) { it.copy(printing = true) }
@@ -126,5 +126,4 @@ object PrinterManager {
         } finally { lock.unlock() }
     }
 
-    private object Companion { const val T = "Manager" }
 }
