@@ -1,5 +1,7 @@
 package dev.meowspool.ui
 
+import android.content.Context
+import android.graphics.Typeface
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.*
@@ -7,41 +9,77 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.googlefonts.GoogleFont
-import androidx.compose.ui.text.googlefonts.Font as GFont
 import dev.meowspool.Prefs
+import dev.meowspool.R
 
 private val Light = lightColorScheme(primary = Color(0xFF7B5EA7), secondaryContainer = Color(0xFFE9DDFF))
 private val Dark = darkColorScheme(primary = Color(0xFFD0BCFF), secondaryContainer = Color(0xFF4A3F6B))
 
-/** UI typeface choices offered in Appearance. Named fonts are fetched on-device via Google Play services (Downloadable Fonts); no font files are bundled. */
-enum class UiFont(val label: String, private val googleName: String?) {
-    DEFAULT("Default", null),
-    INTER("Inter", "Inter"),
-    GOOGLE_SANS("Google Sans", "Google Sans Flex");
+// Inter and Google Sans Flex are bundled as regular resources (both OFL-licensed).
+private val InterFamily = FontFamily(Font(R.font.inter_regular), Font(R.font.inter_medium, FontWeight.Medium))
+private val GoogleSansFamily = FontFamily(
+    Font(R.font.gsf_regular), Font(R.font.gsf_medium, FontWeight.Medium), Font(R.font.gsf_bold, FontWeight.Bold),
+)
 
-    fun family(): FontFamily? = googleName?.let { name ->
-        val g = GoogleFont(name)
-        FontFamily(GFont(g, weight = FontWeight.Normal), GFont(g, weight = FontWeight.Medium), GFont(g, weight = FontWeight.Bold))
-    }
+/**
+ * UI typeface choices offered in Appearance. Ndot and NType are Nothing's own branded fonts; rather than
+ * committing "All Rights Reserved" binaries to this repo, they're fetched into assets/fonts at build time
+ * (see app/build.gradle.kts) and only offered here — via [isAvailable] — when that fetch actually succeeded.
+ * They're display faces, so when picked they dress titles/headings only; body text stays on Inter for legibility.
+ */
+enum class UiFont(val label: String, val titlesOnly: Boolean) {
+    NDOT("Ndot", true),
+    NTYPE("Ntype", true),
+    INTER("Inter", false),
+    GOOGLE_SANS("Google Sans", false),
+    DEFAULT("Default", false);
 
     companion object {
         fun fromPref(): UiFont = values().firstOrNull { it.name == Prefs.uiFont } ?: DEFAULT
     }
 }
 
-private fun typographyFor(family: FontFamily?): Typography {
-    if (family == null) return Typography()
-    val b = Typography()
-    fun androidx.compose.ui.text.TextStyle.f() = copy(fontFamily = family)
+private fun assetPath(f: UiFont): String? = when (f) {
+    UiFont.NDOT -> "fonts/ndot.otf"
+    UiFont.NTYPE -> "fonts/ntype.otf"
+    else -> null
+}
+
+private fun assetFamily(ctx: Context, path: String): FontFamily? = try {
+    ctx.assets.open(path).close() // throws if the fetch task never produced this file
+    FontFamily(Typeface.createFromAsset(ctx.assets, path))
+} catch (e: Exception) { null }
+
+/** Whether this font can actually be offered right now. Always true except Ndot/NType, which need their fetched asset present. */
+@Composable
+fun UiFont.isAvailable(): Boolean {
+    val path = assetPath(this) ?: return true
+    val ctx = LocalContext.current
+    return remember(path) { assetFamily(ctx, path) != null }
+}
+
+private fun headingFamily(ctx: Context, f: UiFont): FontFamily? = when (f) {
+    UiFont.DEFAULT -> null
+    UiFont.INTER -> InterFamily
+    UiFont.GOOGLE_SANS -> GoogleSansFamily
+    UiFont.NDOT, UiFont.NTYPE -> assetPath(f)?.let { assetFamily(ctx, it) }
+}
+
+private fun typographyFor(heading: FontFamily?, body: FontFamily?): Typography {
+    if (heading == null) return Typography()
+    val base = Typography()
+    fun TextStyle.h() = copy(fontFamily = heading)
+    fun TextStyle.b() = copy(fontFamily = body)
     return Typography(
-        displayLarge = b.displayLarge.f(), displayMedium = b.displayMedium.f(), displaySmall = b.displaySmall.f(),
-        headlineLarge = b.headlineLarge.f(), headlineMedium = b.headlineMedium.f(), headlineSmall = b.headlineSmall.f(),
-        titleLarge = b.titleLarge.f(), titleMedium = b.titleMedium.f(), titleSmall = b.titleSmall.f(),
-        bodyLarge = b.bodyLarge.f(), bodyMedium = b.bodyMedium.f(), bodySmall = b.bodySmall.f(),
-        labelLarge = b.labelLarge.f(), labelMedium = b.labelMedium.f(), labelSmall = b.labelSmall.f(),
+        displayLarge = base.displayLarge.h(), displayMedium = base.displayMedium.h(), displaySmall = base.displaySmall.h(),
+        headlineLarge = base.headlineLarge.h(), headlineMedium = base.headlineMedium.h(), headlineSmall = base.headlineSmall.h(),
+        titleLarge = base.titleLarge.h(), titleMedium = base.titleMedium.h(), titleSmall = base.titleSmall.h(),
+        bodyLarge = base.bodyLarge.b(), bodyMedium = base.bodyMedium.b(), bodySmall = base.bodySmall.b(),
+        labelLarge = base.labelLarge.b(), labelMedium = base.labelMedium.b(), labelSmall = base.labelSmall.b(),
     )
 }
 
@@ -55,6 +93,9 @@ fun MeowSpoolTheme(mode: Int, dynamic: Boolean, font: UiFont = UiFont.DEFAULT, c
         dark -> Dark
         else -> Light
     }
-    val typography = remember(font) { typographyFor(font.family()) }
+    // If a picked font's asset never fetched (e.g. built offline), fall back to Default rather than crash.
+    val heading = remember(font) { headingFamily(ctx, font) }
+    val body = remember(heading, font.titlesOnly) { if (font.titlesOnly) InterFamily else heading }
+    val typography = remember(heading, body) { typographyFor(heading, body) }
     MaterialTheme(colorScheme = scheme, typography = typography, content = content)
 }
