@@ -11,7 +11,8 @@ import androidx.compose.ui.unit.dp
 import dev.catprint.PState
 import dev.catprint.PrinterManager
 
-private val Clear = ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent)
+@Composable
+private fun clear() = ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent)
 
 @Composable
 fun DevicesScreen(ui: UiState, pad: PaddingValues) {
@@ -31,7 +32,7 @@ fun DevicesScreen(ui: UiState, pad: PaddingValues) {
                         supportingContent = { Text(sum?.title ?: p.addr) },
                         leadingContent = { Icon(if (on) Icons.Default.Print else Icons.Default.Bluetooth, null) },
                         trailingContent = { IconButton(onClick = { ui.remove(p) }) { Icon(Icons.Default.Delete, "Forget ${p.name}") } },
-                        colors = Clear, modifier = Modifier.clickable { ui.select(p) },
+                        colors = clear(), modifier = Modifier.clickable { ui.select(p) },
                     )
                 }
             }
@@ -49,7 +50,7 @@ fun DevicesScreen(ui: UiState, pad: PaddingValues) {
                 ListItem(
                     headlineContent = { Text(p.name) }, supportingContent = { Text(p.addr) },
                     leadingContent = { Icon(Icons.Default.Bluetooth, null) },
-                    trailingContent = { FilledTonalButton(onClick = { ui.select(p) }) { Text("Add") } }, colors = Clear,
+                    trailingContent = { FilledTonalButton(onClick = { ui.select(p) }) { Text("Add") } }, colors = clear(),
                 )
             }
         }

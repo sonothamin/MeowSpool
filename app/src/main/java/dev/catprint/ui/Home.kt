@@ -23,7 +23,8 @@ import dev.catprint.Conn
 import dev.catprint.PState
 import dev.catprint.PrinterManager
 
-private val Clear = ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent)
+@Composable
+private fun clear() = ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent)
 
 @Composable
 fun HomeScreen(ui: UiState, pad: PaddingValues, go: (Dest) -> Unit) {
@@ -111,7 +112,7 @@ private fun SetupCard(ui: UiState, go: (Dest) -> Unit) {
     Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
         ListItem(
             headlineContent = { Text("Paper") }, supportingContent = { Text("${ui.paper.name} · ${ui.paper.sizeText}") },
-            leadingContent = { Icon(Icons.Default.Description, null) }, trailingContent = chevron, colors = Clear,
+            leadingContent = { Icon(Icons.Default.Description, null) }, trailingContent = chevron, colors = clear(),
             modifier = Modifier.clickable { go(Dest.Paper) },
         )
         HorizontalDivider()
@@ -127,7 +128,7 @@ private fun SetupCard(ui: UiState, go: (Dest) -> Unit) {
         HorizontalDivider()
         ListItem(
             headlineContent = { Text("Print settings") }, supportingContent = { Text(ui.finishSummary) },
-            leadingContent = { Icon(Icons.Default.Tune, null) }, trailingContent = chevron, colors = Clear,
+            leadingContent = { Icon(Icons.Default.Tune, null) }, trailingContent = chevron, colors = clear(),
             modifier = Modifier.clickable { go(Dest.Print) },
         )
     }

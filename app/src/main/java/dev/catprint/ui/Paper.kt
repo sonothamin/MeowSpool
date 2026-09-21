@@ -11,7 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 
-private val Clear = ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent)
+@Composable
+private fun clear() = ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent)
 
 @Composable
 fun PaperScreen(ui: UiState, pad: PaddingValues) {
@@ -32,7 +33,7 @@ fun PaperScreen(ui: UiState, pad: PaddingValues) {
                     headlineContent = { Text(p.name) }, supportingContent = { Text(p.sizeText) },
                     leadingContent = { RadioButton(selected = on, onClick = null) },
                     trailingContent = { if (!p.builtIn) IconButton(onClick = { ui.removePaper(p) }) { Icon(Icons.Default.Delete, "Remove ${p.name}") } },
-                    colors = Clear, modifier = Modifier.clickable { ui.selectPaper(p) },
+                    colors = clear(), modifier = Modifier.clickable { ui.selectPaper(p) },
                 )
             }
         }
