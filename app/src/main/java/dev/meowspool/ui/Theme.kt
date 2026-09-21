@@ -28,7 +28,7 @@ enum class UiFont(val label: String, private val googleName: String?) {
     }
 
     companion object {
-        fun fromPref(): UiFont = entries.firstOrNull { it.name == Prefs.uiFont } ?: DEFAULT
+        fun fromPref(): UiFont = values().firstOrNull { it.name == Prefs.uiFont } ?: DEFAULT
     }
 }
 

@@ -191,7 +191,7 @@ fun AppearanceScreen(ui: UiState, pad: PaddingValues) {
         item {
             Group("Font") {
                 Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    UiFont.entries.forEach { f ->
+                    UiFont.values().forEach { f ->
                         ListItem(
                             headlineContent = { Text(f.label) }, colors = clear(),
                             leadingContent = { RadioButton(selected = ui.uiFont == f, onClick = { ui.uiFont = f }) },
