@@ -15,6 +15,15 @@ import androidx.compose.ui.unit.dp
 private fun clear() = ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent)
 
 @Composable
+private fun paperColors(on: Boolean) = if (on) ListItemDefaults.colors(
+    containerColor = androidx.compose.ui.graphics.Color.Transparent,
+    headlineColor = MaterialTheme.colorScheme.onPrimaryContainer,
+    supportingColor = MaterialTheme.colorScheme.onPrimaryContainer,
+    leadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+    trailingIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+) else clear()
+
+@Composable
 fun PaperScreen(ui: UiState, pad: PaddingValues) {
     var adding by remember { mutableStateOf(false) }
     Page(pad) {
@@ -33,7 +42,7 @@ fun PaperScreen(ui: UiState, pad: PaddingValues) {
                     headlineContent = { Text(p.name) }, supportingContent = { Text(p.sizeText) },
                     leadingContent = { RadioButton(selected = on, onClick = null) },
                     trailingContent = { if (!p.builtIn) IconButton(onClick = { ui.removePaper(p) }) { Icon(Icons.Default.Delete, "Remove ${p.name}") } },
-                    colors = clear(), modifier = Modifier.clickable { ui.selectPaper(p) },
+                    colors = paperColors(on), modifier = Modifier.clickable { ui.selectPaper(p) },
                 )
             }
         }
