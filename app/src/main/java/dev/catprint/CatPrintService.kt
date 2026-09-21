@@ -102,25 +102,35 @@ class CatPrintService : PrintService() {
         cancelled.add(job.id.toString()); job.cancel()
     }
 
+    private val main = android.os.Handler(android.os.Looper.getMainLooper())
+
+    /** PrintJob may only be touched on the main thread: read what we need here, work off-thread, report back on main. */
     override fun onPrintJobQueued(job: PrintJob) {
-        Dbg.d(T, "job queued ${job.id} printer=${job.info.printerId?.localId}")
+        val key = job.id.toString()
+        val addr = job.info.printerId?.localId
+        val pfd = job.document.data
+        Dbg.d(T, "job queued $key printer=$addr")
+        job.start()
         io.execute {
-            try {
-                job.start()
-                print(job)
-                if (!job.isCancelled) { job.complete(); Dbg.d(T, "job complete ${job.id}") }
-            } catch (e: Throwable) {
-                Dbg.e(T, "job failed ${job.id}", e)
-                try { if (!job.isCancelled && !job.isCompleted && !job.isFailed) job.fail(e.message ?: "Print failed") }
-                catch (e2: Throwable) { Dbg.e(T, "could not mark job failed", e2) }
+            val err: Throwable? = try {
+                if (addr == null) throw IOException("No printer")
+                if (pfd == null) throw IOException("No document data")
+                print(addr, key, pfd); null
+            } catch (e: Throwable) { Dbg.e(T, "job failed $key", e); e }
+            main.post {
+                try {
+                    when {
+                        job.isCancelled -> {}
+                        err == null -> { job.complete(); Dbg.d(T, "job complete $key") }
+                        else -> job.fail(err.message ?: "Print failed")
+                    }
+                } catch (e: Throwable) { Dbg.e(T, "could not finish job $key", e) }
+                cancelled.remove(key)
             }
         }
     }
 
-    private fun print(job: PrintJob) {
-        val addr = job.info.printerId?.localId ?: throw IOException("No printer")
-        val key = job.id.toString()
-        val pfd = job.document.data ?: throw IOException("No document data")
+    private fun print(addr: String, key: String, pfd: android.os.ParcelFileDescriptor) {
         PrinterManager.latch(addr)
         try {
             // 1) render every page to 1-bit rows before touching the radio
