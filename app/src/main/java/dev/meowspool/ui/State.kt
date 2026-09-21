@@ -101,6 +101,11 @@ class UiState(
 
     fun notify(msg: String) { say(msg) }
 
+    /** Manual disconnect: tears down the link immediately and stops the reconnect loop, without forgetting
+     * the printer or changing which one is selected. [connectPrinter] latches it again. */
+    fun disconnectPrinter() { val addr = latched ?: return; PrinterManager.forget(addr); latched = null }
+    fun connectPrinter() { selected?.let { latch(it) } }
+
     fun onStart() { Prefs.selected?.let { latch(it) } }
     fun onStop() { scanner.stop(); latched?.let { PrinterManager.release(it) }; latched = null }
     fun refreshService() { serviceOn = serviceCheck(); batteryOk = batteryCheck(); serverEnabled = Prefs.serverEnabled }
