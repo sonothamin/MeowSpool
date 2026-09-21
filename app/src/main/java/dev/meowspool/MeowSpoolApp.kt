@@ -1,9 +1,9 @@
-package dev.catprint
+package dev.meowspool
 
 import android.app.Application
 import android.os.Build
 
-class MeowApp : Application() {
+class MeowSpoolApp : Application() {
     override fun onCreate() {
         super.onCreate()
         Prefs.init(this)

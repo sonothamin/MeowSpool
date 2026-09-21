@@ -1,4 +1,4 @@
-package dev.catprint.ui
+package dev.meowspool.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
@@ -14,8 +14,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import dev.catprint.PState
-import dev.catprint.PrinterManager
+import dev.meowspool.PState
+import dev.meowspool.PrinterManager
 import kotlinx.coroutines.launch
 
 enum class Dest(val title: String, val icon: ImageVector) {
@@ -29,8 +29,8 @@ enum class Dest(val title: String, val icon: ImageVector) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MeowApp(ui: UiState) {
-    MeowTheme(ui.themeMode, ui.dynamicColor) {
+fun MeowSpoolRoot(ui: UiState) {
+    MeowSpoolTheme(ui.themeMode, ui.dynamicColor) {
         var dest by rememberSaveable { mutableStateOf(Dest.Home) }
         val drawer = rememberDrawerState(DrawerValue.Closed)
         val scope = rememberCoroutineScope()

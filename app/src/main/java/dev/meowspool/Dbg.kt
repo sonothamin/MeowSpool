@@ -1,4 +1,4 @@
-package dev.catprint
+package dev.meowspool
 
 import android.util.Log
 import kotlinx.coroutines.flow.MutableStateFlow

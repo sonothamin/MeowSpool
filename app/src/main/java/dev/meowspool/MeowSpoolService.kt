@@ -1,4 +1,4 @@
-package dev.catprint
+package dev.meowspool
 
 import android.graphics.Bitmap
 import android.graphics.Color
@@ -17,7 +17,7 @@ import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 
-class CatPrintService : PrintService() {
+class MeowSpoolService : PrintService() {
     private val T = "Service"
     private val io = Executors.newSingleThreadExecutor()
     private val cancelled = ConcurrentHashMap.newKeySet<String>()

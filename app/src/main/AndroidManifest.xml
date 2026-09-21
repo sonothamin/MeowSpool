@@ -10,12 +10,12 @@
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
 
     <application
-        android:name=".MeowApp"
+        android:name=".MeowSpoolApp"
         android:label="@string/app_name"
         android:icon="@android:drawable/ic_menu_send"
-        android:theme="@style/Theme.Meow">
+        android:theme="@style/Theme.MeowSpool">
 
-        <activity android:name=".SetupActivity" android:exported="true">
+        <activity android:name=".MainActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -23,7 +23,7 @@
         </activity>
 
         <service
-            android:name=".CatPrintService"
+            android:name=".MeowSpoolService"
             android:label="@string/app_name"
             android:exported="true"
             android:permission="android.permission.BIND_PRINT_SERVICE">

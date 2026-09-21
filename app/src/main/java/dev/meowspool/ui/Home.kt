@@ -1,4 +1,4 @@
-package dev.catprint.ui
+package dev.meowspool.ui
 
 import android.content.Intent
 import android.provider.Settings
@@ -19,9 +19,9 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.catprint.Conn
-import dev.catprint.PState
-import dev.catprint.PrinterManager
+import dev.meowspool.Conn
+import dev.meowspool.PState
+import dev.meowspool.PrinterManager
 
 @Composable
 private fun clear() = ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent)
@@ -38,7 +38,7 @@ fun HomeScreen(ui: UiState, pad: PaddingValues, go: (Dest) -> Unit) {
                     Icon(Icons.Default.Print, null)
                     Column(Modifier.weight(1f)) {
                         Text("Print service is off", style = MaterialTheme.typography.titleSmall)
-                        Text("Turn on “Cat Printer Service” so apps can print here.", style = MaterialTheme.typography.bodySmall)
+                        Text("Turn on “MeowSpool” so apps can print here.", style = MaterialTheme.typography.bodySmall)
                     }
                     FilledTonalButton(onClick = { ctx.startActivity(Intent(Settings.ACTION_PRINT_SETTINGS)) }) { Text("Enable") }
                 }

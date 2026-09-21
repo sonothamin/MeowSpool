@@ -3,10 +3,10 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 android {
-    namespace = "dev.catprint"
+    namespace = "dev.meowspool"
     compileSdk = 34
     defaultConfig {
-        applicationId = "dev.catprint"
+        applicationId = "dev.meowspool"
         minSdk = 26
         targetSdk = 34
         versionCode = 1

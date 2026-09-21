@@ -1,4 +1,4 @@
-package dev.catprint
+package dev.meowspool
 
 import android.graphics.*
 import java.io.IOException

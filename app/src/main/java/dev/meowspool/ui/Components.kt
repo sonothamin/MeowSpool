@@ -1,4 +1,4 @@
-package dev.catprint.ui
+package dev.meowspool.ui
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
@@ -13,9 +13,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import dev.catprint.Conn
-import dev.catprint.PState
-import dev.catprint.PrinterStatus
+import dev.meowspool.Conn
+import dev.meowspool.PState
+import dev.meowspool.PrinterStatus
 
 enum class Level { OK, WARN, ERROR, INFO }
 data class Summary(val title: String, val detail: String?, val level: Level, val loading: Boolean = false)

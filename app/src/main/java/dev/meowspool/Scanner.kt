@@ -1,4 +1,4 @@
-package dev.catprint
+package dev.meowspool
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothManager

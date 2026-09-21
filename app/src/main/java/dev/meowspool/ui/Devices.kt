@@ -1,4 +1,4 @@
-package dev.catprint.ui
+package dev.meowspool.ui
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -8,8 +8,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import dev.catprint.PState
-import dev.catprint.PrinterManager
+import dev.meowspool.PState
+import dev.meowspool.PrinterManager
 
 @Composable
 private fun clear() = ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent)

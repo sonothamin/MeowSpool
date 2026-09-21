@@ -1,4 +1,4 @@
-package dev.catprint.ui
+package dev.meowspool.ui
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -12,7 +12,7 @@ private val Dark = darkColorScheme(primary = Color(0xFFD0BCFF), secondaryContain
 
 /** [mode]: 0 system, 1 light, 2 dark. Dynamic (wallpaper) colour on Android 12+ when [dynamic]. */
 @Composable
-fun MeowTheme(mode: Int, dynamic: Boolean, content: @Composable () -> Unit) {
+fun MeowSpoolTheme(mode: Int, dynamic: Boolean, content: @Composable () -> Unit) {
     val dark = when (mode) { 1 -> false; 2 -> true; else -> isSystemInDarkTheme() }
     val ctx = LocalContext.current
     val scheme = when {

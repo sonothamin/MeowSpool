@@ -1,4 +1,4 @@
-package dev.catprint
+package dev.meowspool
 
 /** State byte from the 0xA3 (get device state) reply. Bits per opuu/cat-printer. */
 data class PrinterStatus(val raw: Int) {

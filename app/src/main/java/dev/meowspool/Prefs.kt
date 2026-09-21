@@ -1,4 +1,4 @@
-package dev.catprint
+package dev.meowspool
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -6,7 +6,7 @@ import android.content.SharedPreferences
 /** Saved printers are stored as "address|name". */
 object Prefs {
     private lateinit var sp: SharedPreferences
-    fun init(c: Context) { sp = c.applicationContext.getSharedPreferences("cat", Context.MODE_PRIVATE) }
+    fun init(c: Context) { sp = c.applicationContext.getSharedPreferences("meowspool", Context.MODE_PRIVATE) }
 
     fun printers(): List<Pair<String, String>> =
         sp.getStringSet("printers", emptySet())!!.map {
