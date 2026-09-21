@@ -22,6 +22,8 @@ import androidx.compose.ui.unit.dp
 import dev.meowspool.R
 
 private const val REPO = "https://github.com/sonothamin/MeowSpool"
+/** Placeholder: will point at the hosted API docs later. */
+private const val API_DOCS = "$REPO/blob/main/docs/API.md"
 
 @Composable
 fun AboutScreen(pad: PaddingValues) {
@@ -54,6 +56,12 @@ fun AboutScreen(pad: PaddingValues) {
                     headlineContent = { Text("Source code") }, supportingContent = { Text("github.com/sonothamin/MeowSpool") },
                     leadingContent = { Icon(Icons.Default.Code, null) }, trailingContent = open, colors = none,
                     modifier = Modifier.clickable { uri.openUri(REPO) },
+                )
+                HorizontalDivider()
+                ListItem(
+                    headlineContent = { Text("API documentation") }, supportingContent = { Text("Print from scripts and other devices") },
+                    leadingContent = { Icon(Icons.Default.Api, null) }, trailingContent = open, colors = none,
+                    modifier = Modifier.clickable { uri.openUri(API_DOCS) },
                 )
                 HorizontalDivider()
                 ListItem(

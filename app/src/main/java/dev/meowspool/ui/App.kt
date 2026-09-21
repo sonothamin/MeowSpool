@@ -29,6 +29,7 @@ enum class Dest(val title: String, val icon: ImageVector) {
     History("History", Icons.Default.History),
     Paper("Paper", Icons.Default.Description),
     Print("Print settings", Icons.Default.Tune),
+    Server("Print server", Icons.Default.Dns),
     Look("Appearance", Icons.Default.Palette),
     Log("Debug log", Icons.Default.BugReport),
     About("About", Icons.Default.Info),
@@ -37,7 +38,7 @@ enum class Dest(val title: String, val icon: ImageVector) {
 /** Drawer layout: (section heading, destinations). About is pinned separately at the bottom. */
 private val sections = listOf(
     null to listOf(Dest.Home, Dest.Direct, Dest.Devices, Dest.History),
-    "Printing" to listOf(Dest.Paper, Dest.Print),
+    "Printing" to listOf(Dest.Paper, Dest.Print, Dest.Server),
     "App" to listOf(Dest.Look, Dest.Log),
 )
 
@@ -100,6 +101,7 @@ private fun MainShell(ui: UiState) {
                         Dest.History -> HistoryScreen(pad)
                         Dest.Paper -> PaperScreen(ui, pad)
                         Dest.Print -> PrintSettingsScreen(ui, pad)
+                        Dest.Server -> ServerScreen(ui, pad)
                         Dest.Look -> AppearanceScreen(ui, pad)
                         Dest.Log -> LogScreen(pad)
                         Dest.About -> AboutScreen(pad)

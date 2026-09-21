@@ -55,6 +55,22 @@ class UiState(
     var themeMode by PrefState(Prefs.theme) { Prefs.theme = it }
     var dynamicColor by PrefState(Prefs.dynamicColor) { Prefs.dynamicColor = it }
 
+    // Print server
+    var serverEnabled by mutableStateOf(Prefs.serverEnabled); private set
+    var serverWeb by PrefState(Prefs.serverWeb) { Prefs.serverWeb = it; applyServer() }
+    var serverApi by PrefState(Prefs.serverApi) { Prefs.serverApi = it; applyServer() }
+    var serverLan by PrefState(Prefs.serverLan) { Prefs.serverLan = it; applyServer() }
+    var serverAuth by PrefState(Prefs.serverAuth) { Prefs.serverAuth = it; applyServer() }
+    var serverPort by PrefState(Prefs.serverPort) { Prefs.serverPort = it; applyServer() }
+    var token by mutableStateOf(Prefs.serverToken); private set
+    fun regenToken() { Prefs.serverToken = Prefs.newToken(); token = Prefs.serverToken; applyServer() }
+    fun setServer(on: Boolean) { Prefs.serverEnabled = on; serverEnabled = on; if (on) requestNotif(); applyServer() }
+    var applyServer: () -> Unit = {}
+    var requestNotif: () -> Unit = {}
+    var batteryCheck: () -> Boolean = { true }
+    /** Whether Android's battery optimisation is already switched off for us (needed for background printing/serving). */
+    var batteryOk by mutableStateOf(true)
+
     var paperId by mutableStateOf(Paper.selected().id); private set
     var papers by mutableStateOf(Paper.all()); private set
 
@@ -79,7 +95,7 @@ class UiState(
 
     fun onStart() { Prefs.selected?.let { latch(it) } }
     fun onStop() { scanner.stop(); latched?.let { PrinterManager.release(it) }; latched = null }
-    fun refreshService() { serviceOn = serviceCheck() }
+    fun refreshService() { serviceOn = serviceCheck(); batteryOk = batteryCheck(); serverEnabled = Prefs.serverEnabled }
     fun dismissCrash() { Prefs.lastCrash = null; crash = null }
 
     private fun latch(addr: String?) {

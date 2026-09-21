@@ -23,16 +23,23 @@ class MainActivity : ComponentActivity() {
         if (r.values.all { it }) ui.scan() else ui.permissionDenied()
     }
 
+    private val notif = registerForActivityResult(ActivityResultContracts.RequestPermission()) {}
+
     override fun onCreate(s: Bundle?) {
         super.onCreate(s)
         enableEdgeToEdge()
         ui = UiState(Scanner(this), SnackbarHostState(), lifecycleScope).also {
             it.serviceCheck = ::serviceEnabled
+            it.batteryCheck = { Power.exempt(this) }
+            it.applyServer = { ServerService.apply(this) }
+            it.requestNotif = { if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) notif.launch(Manifest.permission.POST_NOTIFICATIONS) }
             it.requestScan = {
                 val missing = needed().filter { p -> checkSelfPermission(p) != PackageManager.PERMISSION_GRANTED }
                 if (missing.isEmpty()) ui.scan() else perms.launch(missing.toTypedArray())
             }
         }
+        ui.refreshService()
+        if (Prefs.serverEnabled && !ServerService.state.value.running) ServerService.apply(this)
         setContent { MeowSpoolRoot(ui) }
     }
 
