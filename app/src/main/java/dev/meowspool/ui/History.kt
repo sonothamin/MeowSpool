@@ -54,6 +54,14 @@ private fun sourceIcon(s: HistorySource): ImageVector = when (s) {
 @Composable
 fun HistoryScreen(pad: PaddingValues, onOpen: (HistoryEntry) -> Unit) {
     val entries by History.entries.collectAsState()
+    var confirmClear by remember { mutableStateOf(false) }
+    if (confirmClear) AlertDialog(
+        onDismissRequest = { confirmClear = false },
+        title = { Text("Clear history?") },
+        text = { Text("This removes all ${entries.size} entries and their saved pages. You won’t be able to reprint them.") },
+        confirmButton = { TextButton(onClick = { History.clear(); confirmClear = false }) { Text("Clear all", color = MaterialTheme.colorScheme.error) } },
+        dismissButton = { TextButton(onClick = { confirmClear = false }) { Text("Cancel") } },
+    )
     Page(pad) {
         if (entries.isEmpty()) {
             item {
@@ -68,7 +76,7 @@ fun HistoryScreen(pad: PaddingValues, onOpen: (HistoryEntry) -> Unit) {
         } else {
             item {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    TextButton(onClick = { History.clear() }) { Icon(Icons.Default.DeleteSweep, null); Spacer(Modifier.width(8.dp)); Text("Clear all") }
+                    TextButton(onClick = { confirmClear = true }) { Icon(Icons.Default.DeleteSweep, null); Spacer(Modifier.width(8.dp)); Text("Clear all") }
                 }
             }
             items(entries.size) { i -> HistoryRow(entries[i]) { onOpen(entries[i]) } }

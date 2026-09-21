@@ -40,7 +40,7 @@ fun OnboardingScreen(ui: UiState) {
     val ctx = LocalContext.current
     val cs = MaterialTheme.colorScheme
 
-    Scaffold(snackbarHost = { SnackbarHost(ui.snack) }) { pad ->
+    Scaffold { pad ->
         Box(Modifier.fillMaxSize().padding(pad), contentAlignment = Alignment.TopCenter) {
             Column(Modifier.widthIn(max = 480.dp).fillMaxHeight().padding(horizontal = 24.dp, vertical = 8.dp)) {
                 Row(Modifier.fillMaxWidth().height(48.dp), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {

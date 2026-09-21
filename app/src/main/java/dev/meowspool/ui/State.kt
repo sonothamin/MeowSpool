@@ -39,7 +39,7 @@ class UiState(
     var crash by mutableStateOf(Prefs.lastCrash)
     /** First-run "connect your first printer" flow; skipped for anyone who already has a printer. */
     var onboarding by mutableStateOf(!Prefs.onboarded && Prefs.printers().isEmpty()); private set
-    fun finishOnboarding() { Prefs.onboarded = true; onboarding = false }
+    fun finishOnboarding() { snack.currentSnackbarData?.dismiss(); Prefs.onboarded = true; onboarding = false }
 
     // Print settings (persisted)
     var darkness by PrefState(Prefs.darkness) { Prefs.darkness = it }
