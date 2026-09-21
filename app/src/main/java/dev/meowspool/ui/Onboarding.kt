@@ -151,9 +151,9 @@ fun OnboardingScreen(ui: UiState) {
 
 /** Fades and floats its content in after [delay] ms without shifting layout. */
 @Composable
-private fun Reveal(delay: Int, content: @Composable () -> Unit) {
+private fun Reveal(after: Int, content: @Composable () -> Unit) {
     var on by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) { delay(delay.toLong()); on = true }
+    LaunchedEffect(Unit) { delay(after.toLong()); on = true }
     val a by animateFloatAsState(if (on) 1f else 0f, tween(450, easing = FastOutSlowInEasing), label = "reveal")
     Box(Modifier.graphicsLayer { alpha = a; translationY = (1f - a) * 36f }) { content() }
 }
