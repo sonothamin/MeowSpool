@@ -1,26 +1,44 @@
 package dev.catprint
 
 import android.content.Context
+import android.content.SharedPreferences
 
 /** Saved printers are stored as "address|name". */
 object Prefs {
-    private fun p(c: Context) = c.getSharedPreferences("cat", Context.MODE_PRIVATE)
+    private lateinit var sp: SharedPreferences
+    fun init(c: Context) { sp = c.applicationContext.getSharedPreferences("cat", Context.MODE_PRIVATE) }
 
-    fun printers(c: Context): List<Pair<String, String>> =
-        p(c).getStringSet("printers", emptySet())!!.map {
+    fun printers(): List<Pair<String, String>> =
+        sp.getStringSet("printers", emptySet())!!.map {
             val i = it.indexOf('|'); it.substring(0, i) to it.substring(i + 1)
-        }
+        }.sortedBy { it.second }
 
-    fun add(c: Context, addr: String, name: String) {
-        val s = p(c).getStringSet("printers", emptySet())!!.toMutableSet()
+    fun add(addr: String, name: String) {
+        val s = sp.getStringSet("printers", emptySet())!!.toMutableSet()
         s.removeAll { it.startsWith("$addr|") }
         s.add("$addr|$name")
-        p(c).edit().putStringSet("printers", s).apply()
+        sp.edit().putStringSet("printers", s).apply()
+        if (selected == null) selected = addr
     }
 
-    fun clear(c: Context) = p(c).edit().remove("printers").apply()
+    fun remove(addr: String) {
+        val s = sp.getStringSet("printers", emptySet())!!.filterNot { it.startsWith("$addr|") }.toSet()
+        sp.edit().putStringSet("printers", s).apply()
+        if (selected == addr) selected = printers().firstOrNull()?.first
+    }
 
-    var Context.darkness: Int
-        get() = p(this).getInt("darkness", 60)
-        set(v) = p(this).edit().putInt("darkness", v).apply()
+    fun clear() { sp.edit().remove("printers").remove("selected").apply() }
+
+    /** The printer we keep a latched (persistent) connection to. */
+    var selected: String?
+        get() = sp.getString("selected", null)
+        set(v) = sp.edit().putString("selected", v).apply()
+
+    var debug: Boolean
+        get() = sp.getBoolean("debug", false)
+        set(v) = sp.edit().putBoolean("debug", v).apply()
+
+    var darkness: Int
+        get() = sp.getInt("darkness", 60)
+        set(v) = sp.edit().putInt("darkness", v).apply()
 }
