@@ -1,3 +1,5 @@
+import java.net.URL
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -45,7 +47,7 @@ tasks.register("fetchNothingFonts") {
             if (f.exists()) return@forEach
             try {
                 println("MeowSpool: fetching $name from nothingfont…")
-                java.net.URI(url).toURL().openStream().use { input -> f.outputStream().use { input.copyTo(it) } }
+                URL(url).openStream().use { input -> f.outputStream().use { input.copyTo(it) } }
             } catch (e: Exception) {
                 println("MeowSpool: couldn't fetch $name (${e.message}); that font just won't be offered.")
             }
