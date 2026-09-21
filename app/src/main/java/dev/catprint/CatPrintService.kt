@@ -41,12 +41,12 @@ class CatPrintService : PrintService() {
         Prefs.printers().filter { only == null || it.first in only }.map { (addr, name) ->
             val id: PrinterId = generatePrinterId(addr)
             val caps = PrinterCapabilitiesInfo.Builder(id)
-                .addMediaSize(MediaSize("cat48_roll", "48 mm roll (long)", 1890, 11000), true)
-                .addMediaSize(MediaSize("cat48_100", "48 × 100 mm", 1890, 3937), false)
-                .addMediaSize(MediaSize("cat48_50", "48 × 50 mm label", 1890, 1969), false)
+                .addMediaSize(MediaSize("cat58_roll", "58 mm roll (long)", 2283, 11000), true)
+                .addMediaSize(MediaSize("cat58_100", "58 × 100 mm", 2283, 3937), false)
+                .addMediaSize(MediaSize("cat58_50", "58 × 50 mm label", 2283, 1969), false)
                 .addResolution(PrintAttributes.Resolution("r203", "203 dpi", 203, 203), true)
                 .setColorModes(PrintAttributes.COLOR_MODE_MONOCHROME, PrintAttributes.COLOR_MODE_MONOCHROME)
-                .setMinMargins(PrintAttributes.Margins(0, 0, 0, 0))
+                .setMinMargins(PrintAttributes.Margins(Paper.SIDE_MARGIN_MILS, 0, Paper.SIDE_MARGIN_MILS, 0))
                 .build()
             val st = PrinterManager.state(addr)
             val probs = st.status?.problems().orEmpty()
@@ -132,11 +132,15 @@ class CatPrintService : PrintService() {
                     for (i in 0 until renderer.pageCount) {
                         val page = renderer.openPage(i)
                         try {
-                            val scale = CatProtocol.WIDTH.toFloat() / page.width
+                            val mm = page.width * 25.4f / 72f
+                            val is58 = mm in (Paper.PAPER_MM - 3)..(Paper.PAPER_MM + 3)
+                            val visible = if (is58) page.width * Paper.PRINTABLE_MM / Paper.PAPER_MM else page.width.toFloat()
+                            val scale = CatProtocol.WIDTH / visible
+                            val dx = if (is58) -(page.width - visible) / 2f * scale else 0f
                             val h = (page.height * scale).toInt().coerceIn(1, 12000)
                             val bmp = Bitmap.createBitmap(CatProtocol.WIDTH, h, Bitmap.Config.ARGB_8888)
                             bmp.eraseColor(Color.WHITE)
-                            page.render(bmp, null, Matrix().apply { setScale(scale, scale) }, PdfRenderer.Page.RENDER_MODE_FOR_PRINT)
+                            page.render(bmp, null, Matrix().apply { setScale(scale, scale); postTranslate(dx, 0f) }, PdfRenderer.Page.RENDER_MODE_FOR_PRINT)
                             rows += CatProtocol.toRows(bmp)
                             bmp.recycle()
                             Dbg.d(T, "page $i -> ${h} rows")
@@ -145,24 +149,7 @@ class CatPrintService : PrintService() {
                 } finally { renderer.close() }
             }
             // 2) send over the latched link
-            PrinterManager.withLink(addr) { link ->
-                link.requestStatus(); Thread.sleep(400)
-                link.status?.takeIf { it.blocking }?.let { throw IOException(it.problems().joinToString()) }
-                link.send(CatProtocol.begin(Prefs.darkness))
-                for (grp in rows.chunked(8)) {
-                    if (cancelled.remove(key)) { Dbg.d(T, "job cancelled mid-send"); break }
-                    link.send(grp.fold(ByteArray(0)) { acc, r -> acc + CatProtocol.line(r) })
-                }
-                link.send(CatProtocol.end())
-                // wait (bounded) for the printer to report idle
-                val t0 = System.currentTimeMillis()
-                Thread.sleep(1500)
-                while (System.currentTimeMillis() - t0 < 8000) {
-                    link.requestStatus(); Thread.sleep(600)
-                    if (link.status?.busy != true) break
-                }
-                Dbg.d(T, "send finished in ${System.currentTimeMillis() - t0}ms")
-            }
+            PrintEngine.sendRows(addr, rows) { cancelled.remove(key) }
         } finally { PrinterManager.release(addr) }
     }
 }

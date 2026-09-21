@@ -16,6 +16,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.catprint.Conn
 import dev.catprint.Dbg
 import dev.catprint.PState
 import dev.catprint.Prefs
@@ -37,6 +38,8 @@ fun SetupScreen(
     onRemove: (Printer) -> Unit,
     onReconnect: (String) -> Unit,
     onOpenPrintSettings: () -> Unit,
+    testing: Boolean,
+    onTestPrint: (Printer) -> Unit,
     crash: String?,
     onDismissCrash: () -> Unit,
 ) {
@@ -92,7 +95,14 @@ fun SetupScreen(
                 else {
                     val st = states[sel.addr] ?: PState()
                     val sum = summarize(st)
-                    StatusCard(sel.name, sum, st.status, showRetry = sum.level == Level.ERROR && !sum.loading) { onReconnect(sel.addr) }
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        StatusCard(sel.name, sum, st.status, showRetry = sum.level == Level.ERROR && !sum.loading) { onReconnect(sel.addr) }
+                        val ready = st.conn == Conn.CONNECTED && st.status?.blocking != true && !st.printing && !testing
+                        FilledTonalButton(onClick = { onTestPrint(sel) }, enabled = ready, modifier = Modifier.fillMaxWidth()) {
+                            if (testing) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp) else Icon(Icons.Default.PlayArrow, null)
+                            Spacer(Modifier.width(8.dp)); Text(if (testing) "Printing test page…" else "Print test page")
+                        }
+                    }
                 }
             }
 

@@ -19,6 +19,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import dev.catprint.ui.MeowTheme
 import dev.catprint.ui.Printer
@@ -55,6 +56,7 @@ class SetupActivity : ComponentActivity() {
                 val states by PrinterManager.states.collectAsState()
                 val found by scanner.found.collectAsState()
                 val scanning by scanner.scanning.collectAsState()
+                var testing by remember { mutableStateOf(false) }
                 var crash by remember { mutableStateOf(Prefs.lastCrash) }
                 var serviceOn by remember { mutableStateOf(serviceEnabled()) }
 
@@ -99,6 +101,15 @@ class SetupActivity : ComponentActivity() {
                     },
                     onReconnect = { PrinterManager.reconnect(it) },
                     onOpenPrintSettings = { startActivity(Intent(Settings.ACTION_PRINT_SETTINGS)) },
+                    testing = testing,
+                    onTestPrint = { p ->
+                        testing = true
+                        scope.launch(Dispatchers.IO) {
+                            val err = try { PrintEngine.printTestPage(p.addr, p.name); null } catch (e: Throwable) { Dbg.e("Setup", "test print failed", e); e.message ?: "Print failed" }
+                            testing = false
+                            snack.showSnackbar(if (err == null) "Test page sent" else "Test print failed: $err")
+                        }
+                    },
                     crash = crash,
                     onDismissCrash = { Prefs.lastCrash = null; crash = null },
                 )
