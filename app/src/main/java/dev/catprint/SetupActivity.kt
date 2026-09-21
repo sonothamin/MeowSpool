@@ -111,10 +111,12 @@ class SetupActivity : ComponentActivity() {
         latched?.let { PrinterManager.release(it) }; latched = null
     }
 
+    /** Only report "off" when we can tell it's off: not bound by the system and the setting is readable but lacks us. */
     private fun serviceEnabled(): Boolean {
-        val cn = ComponentName(this, CatPrintService::class.java)
-        val v = Settings.Secure.getString(contentResolver, "enabled_print_services") ?: return false
-        return v.split(':').any { it == cn.flattenToString() || it == cn.flattenToShortString() }
+        if (CatPrintService.bound) return true
+        val v = Settings.Secure.getString(contentResolver, "enabled_print_services")
+        if (v.isNullOrBlank()) return true // unreadable on some Android versions; avoid a false alarm
+        return v.split(':').any { it.startsWith("$packageName/") }
     }
 
     private fun needed() = if (Build.VERSION.SDK_INT >= 31)

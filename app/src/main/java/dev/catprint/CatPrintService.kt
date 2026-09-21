@@ -23,12 +23,16 @@ class CatPrintService : PrintService() {
     private val cancelled = ConcurrentHashMap.newKeySet<String>()
     private var latched: String? = null
 
+    companion object { @Volatile var bound = false }
+
     override fun onConnected() {
+        bound = true
         Dbg.d(T, "service connected (system bound us)")
         latched = Prefs.selected?.also { PrinterManager.latch(it) }
     }
 
     override fun onDisconnected() {
+        bound = false
         Dbg.d(T, "service disconnected")
         latched?.let { PrinterManager.release(it) }; latched = null
     }
