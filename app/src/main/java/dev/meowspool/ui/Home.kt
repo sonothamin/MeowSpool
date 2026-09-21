@@ -108,14 +108,6 @@ private fun PrinterHero(p: Printer, st: PState, ui: UiState, onSwitch: () -> Uni
                     if (ui.testing) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp) else Icon(Icons.Default.ReceiptLong, null)
                     Spacer(Modifier.width(8.dp)); Text(if (ui.testing) "Printing…" else "Test page")
                 }
-                OutlinedButton(
-                    onClick = ui::feed, enabled = ready,
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = fg), border = BorderStroke(1.dp, fg.copy(alpha = 0.6f)),
-                ) { Icon(Icons.Default.ArrowDownward, null); Spacer(Modifier.width(8.dp)); Text("Feed") }
-                OutlinedButton(
-                    onClick = ui::retract, enabled = ready,
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = fg), border = BorderStroke(1.dp, fg.copy(alpha = 0.6f)),
-                ) { Icon(Icons.Default.ArrowUpward, null); Spacer(Modifier.width(8.dp)); Text("Retract") }
                 if (st.conn == Conn.ERROR) FilledTonalButton(onClick = { PrinterManager.reconnect(p.addr) }, colors = ButtonDefaults.filledTonalButtonColors(containerColor = fg.copy(alpha = 0.16f), contentColor = fg)) {
                     Icon(Icons.Default.Refresh, null); Spacer(Modifier.width(8.dp)); Text("Reconnect")
                 }
@@ -124,6 +116,16 @@ private fun PrinterHero(p: Printer, st: PState, ui: UiState, onSwitch: () -> Uni
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = fg),
                     border = BorderStroke(1.dp, fg.copy(alpha = 0.6f)),
                 ) { Icon(Icons.Default.SwapHoriz, null); Spacer(Modifier.width(8.dp)); Text("Switch printer") }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(
+                    onClick = ui::feed, enabled = ready, modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = fg), border = BorderStroke(1.dp, fg.copy(alpha = 0.6f)),
+                ) { Icon(Icons.Default.ArrowUpward, null); Spacer(Modifier.width(8.dp)); Text("Feed") }
+                OutlinedButton(
+                    onClick = ui::retract, enabled = ready, modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = fg), border = BorderStroke(1.dp, fg.copy(alpha = 0.6f)),
+                ) { Icon(Icons.Default.ArrowDownward, null); Spacer(Modifier.width(8.dp)); Text("Retract") }
             }
         }
     }
