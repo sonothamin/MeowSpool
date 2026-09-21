@@ -24,6 +24,12 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.ui.graphics.ColorMatrix
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.graphicsLayer
 import dev.meowspool.Conn
 import dev.meowspool.PState
 import dev.meowspool.Prefs
@@ -39,6 +45,24 @@ private fun avatarFor(name: String): Int? {
         n.contains("GB") -> R.drawable.printer_gb01
         else -> null
     }
+}
+
+/** Fades the avatar in from black to full brightness with a gentle scale-up, replayed whenever the model changes. */
+@Composable
+private fun AvatarReveal(avatar: Int) {
+    val reveal = remember(avatar) { Animatable(0f) }
+    LaunchedEffect(avatar) { reveal.animateTo(1f, tween(650, easing = FastOutSlowInEasing)) }
+    val v = reveal.value
+    val matrix = ColorMatrix().apply { setToScale(v, v, v, 1f) }
+    Image(
+        painterResource(avatar), null,
+        modifier = Modifier
+            .size(56.dp)
+            .clip(CircleShape)
+            .graphicsLayer { alpha = v; scaleX = 0.85f + 0.15f * v; scaleY = 0.85f + 0.15f * v },
+        contentScale = ContentScale.Crop,
+        colorFilter = ColorFilter.colorMatrix(matrix),
+    )
 }
 
 @Composable
@@ -111,7 +135,7 @@ private fun PrinterHero(p: Printer, st: PState, ui: UiState, onSwitch: () -> Uni
                 val avatar = if (ui.deviceAvatars) avatarFor(p.name) else null
                 Box(Modifier.size(56.dp).background(fg.copy(alpha = 0.12f), CircleShape), contentAlignment = Alignment.Center) {
                     if (sum.loading) CircularProgressIndicator(Modifier.size(30.dp), strokeWidth = 3.dp, color = fg)
-                    else if (avatar != null) Image(painterResource(avatar), null, Modifier.size(56.dp).clip(CircleShape), contentScale = ContentScale.Crop)
+                    else if (avatar != null) AvatarReveal(avatar)
                     else Icon(if (danger) Icons.Default.Warning else Icons.Default.Print, null, Modifier.size(30.dp))
                 }
                 Column(Modifier.weight(1f)) {
