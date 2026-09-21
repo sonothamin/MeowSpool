@@ -65,6 +65,7 @@ private fun MainShell(ui: UiState) {
     BackHandler(dest != Dest.Home && drawer.isClosed) { dest = Dest.Home }
     BackHandler(detail != null && drawer.isClosed) { detail = null }
     fun go(d: Dest) { dest = d; detail = null; scope.launch { drawer.close() } }
+    LaunchedEffect(ui.incomingShare) { if (ui.incomingShare != null) go(Dest.Direct) }
 
     // Drawer slides in from the right: mirror the layout direction around it, keep content LTR.
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
