@@ -45,6 +45,8 @@ class UiState(
     var darkness by PrefState(Prefs.darkness) { Prefs.darkness = it }
     var dither by PrefState(Dither.fromPref()) { Prefs.dither = it.name }
     var feedMm by PrefState(Prefs.feedMm) { Prefs.feedMm = it }
+    var feedStepMm by PrefState(Prefs.feedStepMm) { Prefs.feedStepMm = it }
+    var retractStepMm by PrefState(Prefs.retractStepMm) { Prefs.retractStepMm = it }
     var lineBefore by PrefState(Prefs.lineBefore) { Prefs.lineBefore = it }
     var lineAfter by PrefState(Prefs.lineAfter) { Prefs.lineAfter = it }
     var lineDashed by PrefState(Prefs.lineDashed) { Prefs.lineDashed = it }
@@ -104,7 +106,7 @@ class UiState(
         say("Removed ${p.name}", "Undo") { Prefs.addPaper(p.id, p.name, p.lengthMm ?: 100); papers = Paper.all() }
     }
 
-    fun resetPrintSettings() { darkness = 60; dither = Dither.FLOYD; feedMm = 12; lineBefore = false; lineAfter = false; lineDashed = true; marginSideMm = 0; marginVertMm = 0 }
+    fun resetPrintSettings() { darkness = 60; dither = Dither.FLOYD; feedMm = 12; lineBefore = false; lineAfter = false; lineDashed = true; marginSideMm = 0; marginVertMm = 0; feedStepMm = 20; retractStepMm = 20 }
 
     val canTest get() = selectedPrinter != null && !testing
 
@@ -124,10 +126,10 @@ class UiState(
 
     fun feed() {
         val p = selectedPrinter ?: return
-        scope.launch(Dispatchers.IO) { try { PrintEngine.feed(p.addr) } catch (e: Throwable) { Dbg.e("UI", "feed failed", e); say("Feed failed: ${e.message ?: "error"}") } }
+        scope.launch(Dispatchers.IO) { try { PrintEngine.feed(p.addr, feedStepMm) } catch (e: Throwable) { Dbg.e("UI", "feed failed", e); say("Feed failed: ${e.message ?: "error"}") } }
     }
     fun retract() {
         val p = selectedPrinter ?: return
-        scope.launch(Dispatchers.IO) { try { PrintEngine.retract(p.addr) } catch (e: Throwable) { Dbg.e("UI", "retract failed", e); say("Retract failed: ${e.message ?: "error"}") } }
+        scope.launch(Dispatchers.IO) { try { PrintEngine.retract(p.addr, retractStepMm) } catch (e: Throwable) { Dbg.e("UI", "retract failed", e); say("Retract failed: ${e.message ?: "error"}") } }
     }
 }

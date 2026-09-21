@@ -73,6 +73,13 @@ object Prefs {
     var feedMm: Int
         get() = sp.getInt("feedMm", 12)
         set(v) = sp.edit().putInt("feedMm", v).apply()
+    /** How far the manual Feed/Retract buttons move paper per tap (separate from feed-after-print). */
+    var feedStepMm: Int
+        get() = sp.getInt("feedStepMm", 20)
+        set(v) = sp.edit().putInt("feedStepMm", v).apply()
+    var retractStepMm: Int
+        get() = sp.getInt("retractStepMm", 20)
+        set(v) = sp.edit().putInt("retractStepMm", v).apply()
     var lineBefore: Boolean
         get() = sp.getBoolean("lineBefore", false)
         set(v) = sp.edit().putBoolean("lineBefore", v).apply()

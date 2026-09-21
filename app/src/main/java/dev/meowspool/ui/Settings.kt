@@ -71,6 +71,27 @@ fun PrintSettingsScreen(ui: UiState, pad: PaddingValues) {
             }
         }
         item {
+            Group("Paper control") {
+                Column(Modifier.padding(horizontal = 16.dp)) {
+                    Row { Text("Feed length", Modifier.weight(1f)); Text("${ui.feedStepMm} mm", color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                    Slider(value = ui.feedStepMm.toFloat(), onValueChange = { ui.feedStepMm = it.toInt() }, valueRange = 5f..100f, steps = 94)
+                    Row { Text("Retract length", Modifier.weight(1f)); Text("${ui.retractStepMm} mm", color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                    Slider(value = ui.retractStepMm.toFloat(), onValueChange = { ui.retractStepMm = it.toInt() }, valueRange = 5f..100f, steps = 94)
+                    Text("How far the Feed and Retract buttons move paper per tap.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(Modifier.height(12.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(onClick = ui::feed, enabled = ui.selectedPrinter != null, modifier = Modifier.weight(1f)) {
+                            Icon(Icons.Default.ArrowUpward, null); Spacer(Modifier.width(8.dp)); Text("Feed")
+                        }
+                        OutlinedButton(onClick = ui::retract, enabled = ui.selectedPrinter != null, modifier = Modifier.weight(1f)) {
+                            Icon(Icons.Default.ArrowDownward, null); Spacer(Modifier.width(8.dp)); Text("Retract")
+                        }
+                    }
+                    Spacer(Modifier.height(8.dp))
+                }
+            }
+        }
+        item {
             Group("Margins") {
                 Column(Modifier.padding(horizontal = 16.dp)) {
                     Row { Text("Left & right", Modifier.weight(1f)); Text("${ui.marginSideMm} mm", color = MaterialTheme.colorScheme.onSurfaceVariant) }
