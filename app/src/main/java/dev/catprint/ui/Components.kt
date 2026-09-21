@@ -1,5 +1,6 @@
 package dev.catprint.ui
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -82,7 +83,7 @@ fun StatusChips(items: List<StatusItem>, tint: Color = MaterialTheme.colorScheme
                 onClick = {}, label = { Text(it.label) },
                 leadingIcon = { Icon(it.icon, null, Modifier.size(18.dp)) },
                 colors = AssistChipDefaults.assistChipColors(containerColor = bg, labelColor = fg, leadingIconContentColor = fg),
-                border = if (bad) null else AssistChipDefaults.assistChipBorder(enabled = true, borderColor = tint.copy(alpha = 0.3f)),
+                border = if (bad) null else BorderStroke(1.dp, tint.copy(alpha = 0.3f)),
             )
         }
     }

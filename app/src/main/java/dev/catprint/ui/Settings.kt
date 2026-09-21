@@ -128,6 +128,7 @@ fun LogScreen(pad: PaddingValues) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppearanceScreen(ui: UiState, pad: PaddingValues) {
     Page(pad) {
