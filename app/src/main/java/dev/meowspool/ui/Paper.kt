@@ -22,7 +22,7 @@ fun PaperScreen(ui: UiState, pad: PaddingValues) {
             Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
                 Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Icon(Icons.Default.Info, null)
-                    Text("Your printer takes 58 mm paper and prints 48 mm across, centred. Pick the size you loaded; apps offer it when printing.", style = MaterialTheme.typography.bodyMedium)
+                    Text("Your printer takes 58 mm paper and prints 48 mm across, centred (the print head’s fixed width). Adjust extra margins in Print settings. Pick the size you loaded; apps offer it when printing.", style = MaterialTheme.typography.bodyMedium)
                 }
             }
         }

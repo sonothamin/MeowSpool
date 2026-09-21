@@ -71,6 +71,22 @@ fun PrintSettingsScreen(ui: UiState, pad: PaddingValues) {
             }
         }
         item {
+            Group("Margins") {
+                Column(Modifier.padding(horizontal = 16.dp)) {
+                    Row { Text("Left & right", Modifier.weight(1f)); Text("${ui.marginSideMm} mm", color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                    Slider(value = ui.marginSideMm.toFloat(), onValueChange = { ui.marginSideMm = it.toInt() }, valueRange = 0f..10f, steps = 9)
+                    Row { Text("Top & bottom", Modifier.weight(1f)); Text("${ui.marginVertMm} mm", color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                    Slider(value = ui.marginVertMm.toFloat(), onValueChange = { ui.marginVertMm = it.toInt() }, valueRange = 0f..10f, steps = 9)
+                    Text(
+                        "The printer head is 48 mm wide, so that’s the hardest limit: the 5 mm each side of 58 mm paper can’t be printed. " +
+                            "These add extra space inside the 48 mm (0 = edge to edge). Apps pick them up the next time you open the print dialog.",
+                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                }
+            }
+        }
+        item {
             Group("Tear-off line") {
                 ListItem(
                     headlineContent = { Text("Line before print") }, leadingContent = { Icon(Icons.Default.ContentCut, null) }, colors = clear(),

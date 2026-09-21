@@ -43,6 +43,8 @@ class UiState(
     var lineBefore by PrefState(Prefs.lineBefore) { Prefs.lineBefore = it }
     var lineAfter by PrefState(Prefs.lineAfter) { Prefs.lineAfter = it }
     var lineDashed by PrefState(Prefs.lineDashed) { Prefs.lineDashed = it }
+    var marginSideMm by PrefState(Prefs.marginSideMm) { Prefs.marginSideMm = it }
+    var marginVertMm by PrefState(Prefs.marginVertMm) { Prefs.marginVertMm = it }
     var themeMode by PrefState(Prefs.theme) { Prefs.theme = it }
     var dynamicColor by PrefState(Prefs.dynamicColor) { Prefs.dynamicColor = it }
 
@@ -94,7 +96,7 @@ class UiState(
         say("Removed ${p.name}", "Undo") { Prefs.addPaper(p.id, p.name, p.lengthMm ?: 100); papers = Paper.all() }
     }
 
-    fun resetPrintSettings() { darkness = 60; dither = Dither.FLOYD; feedMm = 12; lineBefore = false; lineAfter = false; lineDashed = true }
+    fun resetPrintSettings() { darkness = 60; dither = Dither.FLOYD; feedMm = 12; lineBefore = false; lineAfter = false; lineDashed = true; marginSideMm = 0; marginVertMm = 0 }
 
     val canTest get() = selectedPrinter != null && !testing
     fun testPrint() {

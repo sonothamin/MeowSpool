@@ -17,6 +17,9 @@ object Paper {
     const val SIDE_MARGIN_MILS = 197   // (58-48)/2 mm
     const val WIDTH_MILS = 2283
     fun mils(mm: Int) = (mm / 25.4f * 1000).toInt()
+    /** Hardware gap either side of the 384-dot head, plus the user's extra margin. */
+    fun sideMils() = SIDE_MARGIN_MILS + mils(Prefs.marginSideMm)
+    fun vertMils() = mils(Prefs.marginVertMm)
 
     val builtIns = listOf(
         PaperPreset("roll", "58 mm roll (continuous)", null, true),

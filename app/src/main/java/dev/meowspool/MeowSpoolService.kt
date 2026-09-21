@@ -44,7 +44,7 @@ class MeowSpoolService : PrintService() {
                 .apply { val sel = Paper.selected().id; Paper.all().forEach { addMediaSize(MediaSize(it.id, it.name, Paper.WIDTH_MILS, it.heightMils), it.id == sel) } }
                 .addResolution(PrintAttributes.Resolution("r203", "203 dpi", 203, 203), true)
                 .setColorModes(PrintAttributes.COLOR_MODE_MONOCHROME, PrintAttributes.COLOR_MODE_MONOCHROME)
-                .setMinMargins(PrintAttributes.Margins(Paper.SIDE_MARGIN_MILS, 0, Paper.SIDE_MARGIN_MILS, 0))
+                .setMinMargins(PrintAttributes.Margins(Paper.sideMils(), Paper.vertMils(), Paper.sideMils(), Paper.vertMils()))
                 .build()
             val st = PrinterManager.state(addr)
             val probs = st.status?.problems().orEmpty()

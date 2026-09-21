@@ -59,6 +59,14 @@ object Prefs {
         if (paperId == id) paperId = "roll"
     }
 
+    /** Extra margin (mm) added inside the 48 mm printable width, each side / top+bottom. */
+    var marginSideMm: Int
+        get() = sp.getInt("marginSideMm", 0)
+        set(v) = sp.edit().putInt("marginSideMm", v).apply()
+    var marginVertMm: Int
+        get() = sp.getInt("marginVertMm", 0)
+        set(v) = sp.edit().putInt("marginVertMm", v).apply()
+
     var dither: String
         get() = sp.getString("dither", "FLOYD")!!
         set(v) = sp.edit().putString("dither", v).apply()
