@@ -130,7 +130,7 @@ private fun NoPrinter(onFind: () -> Unit) {
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun PrinterHero(p: Printer, st: PState, ui: UiState, onSwitch: () -> Unit) {
     val sum = summarize(st)
@@ -154,7 +154,7 @@ private fun PrinterHero(p: Printer, st: PState, ui: UiState, onSwitch: () -> Uni
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     if (avatar == null) Box(Modifier.size(48.dp).background(contentColor.copy(alpha = 0.12f), CircleShape), contentAlignment = Alignment.Center) {
-                        if (sum.loading) CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 3.dp, color = contentColor)
+                        if (sum.loading) LoadingIndicator(Modifier.size(24.dp), color = contentColor)
                         else Icon(if (danger) Icons.Default.Warning else Icons.Default.Print, null, Modifier.size(24.dp))
                     }
                     Column(Modifier.weight(1f)) {
@@ -170,7 +170,7 @@ private fun PrinterHero(p: Printer, st: PState, ui: UiState, onSwitch: () -> Uni
                 // when this whole card is sitting on the error-container tone.
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(onClick = ui::requestTestPrint, enabled = ready) {
-                        if (ui.testing) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp) else Icon(Icons.Default.ReceiptLong, null)
+                        if (ui.testing) LoadingIndicator(Modifier.size(18.dp)) else Icon(Icons.Default.ReceiptLong, null)
                         Spacer(Modifier.width(8.dp)); Text(if (ui.testing) "Printing…" else "Test page")
                     }
                     if (st.conn == Conn.ERROR) FilledTonalButton(onClick = { PrinterManager.reconnect(p.addr) }) {
