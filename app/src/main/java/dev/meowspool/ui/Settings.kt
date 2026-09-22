@@ -111,11 +111,11 @@ fun PrintSettingsScreen(ui: UiState, pad: PaddingValues) {
         item {
             Group("Tear-off line") {
                 ListItem(
-                    headlineContent = { Text("Line before print") }, leadingContent = { Icon(Icons.Default.ContentCut, null) }, colors = clear(),
+                    headlineContent = { Text("Line before print") }, leadingContent = { OneUiChipIcon(Icons.Default.ContentCut, ui) }, colors = clear(),
                     trailingContent = { Switch(ui.lineBefore, { ui.lineBefore = it }) },
                 )
                 ListItem(
-                    headlineContent = { Text("Line after print") }, leadingContent = { Icon(Icons.Default.ContentCut, null) }, colors = clear(),
+                    headlineContent = { Text("Line after print") }, leadingContent = { OneUiChipIcon(Icons.Default.ContentCut, ui) }, colors = clear(),
                     trailingContent = { Switch(ui.lineAfter, { ui.lineAfter = it }) },
                 )
                 if (ui.lineBefore || ui.lineAfter) Row(Modifier.padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -183,18 +183,18 @@ fun AppearanceScreen(ui: UiState, pad: PaddingValues) {
                 }
                 if (Build.VERSION.SDK_INT >= 31) ListItem(
                     headlineContent = { Text("Dynamic colour") }, supportingContent = { Text("Match your wallpaper") },
-                    leadingContent = { Icon(Icons.Default.Palette, null) }, colors = clear(),
+                    leadingContent = { OneUiChipIcon(Icons.Default.Palette, ui) }, colors = clear(),
                     trailingContent = { Switch(ui.dynamicColor, { ui.dynamicColor = it }) },
                 )
                 ListItem(
                     headlineContent = { Text("AMOLED black") }, supportingContent = { Text("True black backgrounds in dark mode, easier on OLED screens") },
-                    leadingContent = { Icon(Icons.Default.Contrast, null) }, colors = clear(),
+                    leadingContent = { OneUiChipIcon(Icons.Default.Contrast, ui) }, colors = clear(),
                     trailingContent = { Switch(ui.amoled, { ui.amoled = it }) },
                 )
                 StyleDropdown(ui)
                 ListItem(
                     headlineContent = { Text("Device pictures") }, supportingContent = { Text("Show a picture of your printer on Home when its model is recognised") },
-                    leadingContent = { Icon(Icons.Default.Image, null) }, colors = clear(),
+                    leadingContent = { OneUiChipIcon(Icons.Default.Image, ui) }, colors = clear(),
                     trailingContent = { Switch(ui.deviceAvatars, { ui.deviceAvatars = it }) },
                 )
             }

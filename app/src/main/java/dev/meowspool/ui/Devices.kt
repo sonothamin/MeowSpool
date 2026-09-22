@@ -30,7 +30,7 @@ fun DevicesScreen(ui: UiState, pad: PaddingValues) {
                     ListItem(
                         headlineContent = { Text(p.name) },
                         supportingContent = { Text(sum?.title ?: p.addr) },
-                        leadingContent = { Icon(if (on) Icons.Default.Print else Icons.Default.Bluetooth, null) },
+                        leadingContent = { OneUiChipIcon(if (on) Icons.Default.Print else Icons.Default.Bluetooth, ui) },
                         trailingContent = { IconButton(onClick = { ui.remove(p) }) { Icon(Icons.Default.Delete, "Forget ${p.name}") } },
                         colors = clear(), modifier = Modifier.clickable { ui.select(p) },
                     )
@@ -49,7 +49,7 @@ fun DevicesScreen(ui: UiState, pad: PaddingValues) {
             Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
                 ListItem(
                     headlineContent = { Text(p.name) }, supportingContent = { Text(p.addr) },
-                    leadingContent = { Icon(Icons.Default.Bluetooth, null) },
+                    leadingContent = { OneUiChipIcon(Icons.Default.Bluetooth, ui) },
                     trailingContent = { FilledTonalButton(onClick = { ui.select(p) }) { Text("Add") } }, colors = clear(),
                 )
             }

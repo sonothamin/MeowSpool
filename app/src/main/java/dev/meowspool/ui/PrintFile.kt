@@ -40,8 +40,8 @@ private fun SliderRow(label: String, valueText: String, v: Float, range: ClosedF
 }
 
 @Composable
-private fun SwitchRow(label: String, icon: androidx.compose.ui.graphics.vector.ImageVector, on: Boolean, onChange: (Boolean) -> Unit) =
-    ListItem(headlineContent = { Text(label) }, leadingContent = { Icon(icon, null) }, colors = clear(), trailingContent = { Switch(on, onChange) })
+private fun SwitchRow(label: String, icon: androidx.compose.ui.graphics.vector.ImageVector, on: Boolean, onChange: (Boolean) -> Unit, ui: UiState) =
+    ListItem(headlineContent = { Text(label) }, leadingContent = { OneUiChipIcon(icon, ui) }, colors = clear(), trailingContent = { Switch(on, onChange) })
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -127,7 +127,7 @@ fun PrintFileScreen(ui: UiState, pad: PaddingValues, go: (Dest) -> Unit) {
             Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
                 ListItem(
                     headlineContent = { Text(d.name, maxLines = 1) }, supportingContent = { Text(d.info) },
-                    leadingContent = { Icon(if (d.isPdf) Icons.Default.PictureAsPdf else Icons.Default.Image, null) }, colors = clear(),
+                    leadingContent = { OneUiChipIcon(if (d.isPdf) Icons.Default.PictureAsPdf else Icons.Default.Image, ui) }, colors = clear(),
                     trailingContent = {
                         Row {
                             IconButton(onClick = { pick.launch(arrayOf("image/*", "application/pdf")) }) { Icon(Icons.Default.FolderOpen, "Choose another file") }
@@ -177,11 +177,11 @@ fun PrintFileScreen(ui: UiState, pad: PaddingValues, go: (Dest) -> Unit) {
                     )
                 }
                 ListItem(
-                    headlineContent = { Text("Rotate") }, supportingContent = { Text("${s.rotation}°") }, leadingContent = { Icon(Icons.Default.RotateRight, null) }, colors = clear(),
+                    headlineContent = { Text("Rotate") }, supportingContent = { Text("${s.rotation}°") }, leadingContent = { OneUiChipIcon(Icons.Default.RotateRight, ui) }, colors = clear(),
                     trailingContent = { OutlinedButton(onClick = { s = s.copy(rotation = (s.rotation + 90) % 360) }) { Text("Rotate 90°") } },
                 )
                 ListItem(
-                    headlineContent = { Text("Copies") }, leadingContent = { Icon(Icons.Default.ContentCopy, null) }, colors = clear(),
+                    headlineContent = { Text("Copies") }, leadingContent = { OneUiChipIcon(Icons.Default.ContentCopy, ui) }, colors = clear(),
                     trailingContent = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             IconButton(onClick = { s = s.copy(copies = s.copies - 1) }, enabled = s.copies > 1) { Icon(Icons.Default.Remove, "Fewer") }
@@ -196,7 +196,7 @@ fun PrintFileScreen(ui: UiState, pad: PaddingValues, go: (Dest) -> Unit) {
             Card(Modifier.fillMaxWidth().clickable { advanced = !advanced }, colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
                 ListItem(
                     headlineContent = { Text("Advanced settings") }, supportingContent = { Text("Brightness, contrast, dithering, darkness…") },
-                    leadingContent = { Icon(Icons.Default.Tune, null) }, colors = clear(),
+                    leadingContent = { OneUiChipIcon(Icons.Default.Tune, ui) }, colors = clear(),
                     trailingContent = { Icon(if (advanced) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null) },
                 )
             }
@@ -206,7 +206,7 @@ fun PrintFileScreen(ui: UiState, pad: PaddingValues, go: (Dest) -> Unit) {
                 Group("Image") {
                     SliderRow("Brightness", "${s.brightness}", s.brightness.toFloat(), -100f..100f) { s = s.copy(brightness = it.roundToInt()) }
                     SliderRow("Contrast", "${s.contrast}", s.contrast.toFloat(), -100f..100f) { s = s.copy(contrast = it.roundToInt()) }
-                    SwitchRow("Invert (negative)", Icons.Default.InvertColors, s.invert) { s = s.copy(invert = it) }
+                    SwitchRow("Invert (negative)", Icons.Default.InvertColors, s.invert, { s = s.copy(invert = it) }, ui)
                     Column(Modifier.padding(horizontal = 16.dp)) {
                         Text("Dithering")
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -220,8 +220,8 @@ fun PrintFileScreen(ui: UiState, pad: PaddingValues, go: (Dest) -> Unit) {
                 Group("Output") {
                     SliderRow("Darkness", "${s.darkness}%", s.darkness.toFloat(), 0f..100f) { s = s.copy(darkness = it.roundToInt()) }
                     SliderRow("Feed after print", "${s.feedMm} mm", s.feedMm.toFloat(), 0f..40f, 39) { s = s.copy(feedMm = it.roundToInt()) }
-                    SwitchRow("Tear-off line before", Icons.Default.ContentCut, s.lineBefore) { s = s.copy(lineBefore = it) }
-                    SwitchRow("Tear-off line after", Icons.Default.ContentCut, s.lineAfter) { s = s.copy(lineAfter = it) }
+                    SwitchRow("Tear-off line before", Icons.Default.ContentCut, s.lineBefore, { s = s.copy(lineBefore = it) }, ui)
+                    SwitchRow("Tear-off line after", Icons.Default.ContentCut, s.lineAfter, { s = s.copy(lineAfter = it) }, ui)
                 }
             }
         }

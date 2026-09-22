@@ -59,7 +59,7 @@ fun ServerScreen(ui: UiState, pad: PaddingValues) {
                         ui.serverEnabled -> "Starting…"
                         else -> "Off: print from other devices, scripts or a browser"
                     }, color = if (srv.error != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant) },
-                    leadingContent = { Icon(Icons.Default.Dns, null) }, colors = clearColors(),
+                    leadingContent = { OneUiChipIcon(Icons.Default.Dns, ui) }, colors = clearColors(),
                     trailingContent = { Switch(ui.serverEnabled, { ui.setServer(it) }) },
                 )
                 if (srv.running) Row(Modifier.padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -81,7 +81,7 @@ fun ServerScreen(ui: UiState, pad: PaddingValues) {
             Group("Access") {
                 ListItem(
                     headlineContent = { Text("Network access") }, supportingContent = { Text(if (ui.serverLan) "Other devices on your Wi-Fi can print" else "This phone only (127.0.0.1)") },
-                    leadingContent = { Icon(Icons.Default.Wifi, null) }, colors = clearColors(), trailingContent = { Switch(ui.serverLan, { ui.serverLan = it }) },
+                    leadingContent = { OneUiChipIcon(Icons.Default.Wifi, ui) }, colors = clearColors(), trailingContent = { Switch(ui.serverLan, { ui.serverLan = it }) },
                 )
                 OutlinedTextField(
                     value = port, onValueChange = { port = it.filter(Char::isDigit).take(5) }, label = { Text("Port") }, singleLine = true, isError = !portOk,
@@ -92,7 +92,7 @@ fun ServerScreen(ui: UiState, pad: PaddingValues) {
                 )
                 ListItem(
                     headlineContent = { Text("Require access token") }, supportingContent = { Text(if (ui.serverAuth) "Requests without the token are refused" else "Anyone on the network can print") },
-                    leadingContent = { Icon(Icons.Default.Key, null) }, colors = clearColors(), trailingContent = { Switch(ui.serverAuth, { ui.serverAuth = it }) },
+                    leadingContent = { OneUiChipIcon(Icons.Default.Key, ui) }, colors = clearColors(), trailingContent = { Switch(ui.serverAuth, { ui.serverAuth = it }) },
                 )
                 if (ui.serverAuth) ListItem(
                     headlineContent = { Text(ui.token, fontFamily = FontFamily.Monospace) }, supportingContent = { Text("Send as “Authorization: Bearer …”") }, colors = clearColors(),
@@ -107,11 +107,11 @@ fun ServerScreen(ui: UiState, pad: PaddingValues) {
             Group("Interfaces") {
                 ListItem(
                     headlineContent = { Text("Web page") }, supportingContent = { Text("Upload and print from any browser") },
-                    leadingContent = { Icon(Icons.Default.Language, null) }, colors = clearColors(), trailingContent = { Switch(ui.serverWeb, { ui.serverWeb = it }) },
+                    leadingContent = { OneUiChipIcon(Icons.Default.Language, ui) }, colors = clearColors(), trailingContent = { Switch(ui.serverWeb, { ui.serverWeb = it }) },
                 )
                 ListItem(
                     headlineContent = { Text("API") }, supportingContent = { Text("For scripts and apps; see the docs in About") },
-                    leadingContent = { Icon(Icons.Default.Api, null) }, colors = clearColors(), trailingContent = { Switch(ui.serverApi, { ui.serverApi = it }) },
+                    leadingContent = { OneUiChipIcon(Icons.Default.Api, ui) }, colors = clearColors(), trailingContent = { Switch(ui.serverApi, { ui.serverApi = it }) },
                 )
             }
         }

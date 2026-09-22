@@ -109,7 +109,7 @@ fun HomeScreen(ui: UiState, pad: PaddingValues, go: (Dest) -> Unit) {
             Card(Modifier.fillMaxWidth().clickable { go(Dest.Direct) }, colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
                 ListItem(
                     headlineContent = { Text("Print a photo or PDF") }, supportingContent = { Text("Preview, adjust and print straight from here") },
-                    leadingContent = { Icon(Icons.Default.UploadFile, null) },
+                    leadingContent = { OneUiChipIcon(Icons.Default.UploadFile, ui) },
                     trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null) }, colors = clear(),
                 )
             }
@@ -208,13 +208,13 @@ private fun SetupCard(ui: UiState, go: (Dest) -> Unit) {
     Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
         ListItem(
             headlineContent = { Text("Paper") }, supportingContent = { Text("${ui.paper.name} · ${ui.paper.sizeText}") },
-            leadingContent = { Icon(Icons.Default.Description, null) }, trailingContent = chevron, colors = clear(),
+            leadingContent = { OneUiChipIcon(Icons.Default.Description, ui) }, trailingContent = chevron, colors = clear(),
             modifier = Modifier.clickable { go(Dest.Paper) },
         )
         HorizontalDivider()
         ListItem(
             headlineContent = { Text("Print settings") }, supportingContent = { Text("Darkness ${ui.darkness}% · ${ui.finishSummary}") },
-            leadingContent = { Icon(Icons.Default.Tune, null) }, trailingContent = chevron, colors = clear(),
+            leadingContent = { OneUiChipIcon(Icons.Default.Tune, ui) }, trailingContent = chevron, colors = clear(),
             modifier = Modifier.clickable { go(Dest.Print) },
         )
     }

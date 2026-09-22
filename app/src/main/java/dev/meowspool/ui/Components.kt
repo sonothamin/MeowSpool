@@ -1,6 +1,7 @@
 package dev.meowspool.ui
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -103,5 +104,25 @@ fun Page(pad: PaddingValues, content: LazyListScope.() -> Unit) {
             verticalArrangement = Arrangement.spacedBy(12.dp),
             content = content,
         )
+    }
+}
+
+/** One UI settings rows put each leading icon in its own colour chip rather than a flat glyph. This wraps
+ * any existing Material [ImageVector] with that treatment when [ui]'s style is One UI, and renders it
+ * completely unchanged (a plain flat Icon) otherwise — so it's safe to drop into any ListItem/NavigationDrawerItem
+ * across the app without touching the Material/Glass look. */
+@Composable
+fun OneUiChipIcon(icon: ImageVector, ui: UiState, modifier: Modifier = Modifier) {
+    val style = UiStyle.fromPref(ui.uiStyle)
+    if (style != UiStyle.ONE_UI) { Icon(icon, null, modifier); return }
+    val cs = MaterialTheme.colorScheme
+    val palette = listOf(
+        cs.primaryContainer to cs.onPrimaryContainer, cs.tertiaryContainer to cs.onTertiaryContainer,
+        cs.secondaryContainer to cs.onSecondaryContainer, cs.errorContainer to cs.onErrorContainer,
+    )
+    val idx = (icon.hashCode() and 0x7fffffff) % palette.size
+    val (bg, fg) = palette[idx]
+    Box(modifier.size(32.dp).background(bg, androidx.compose.foundation.shape.RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
+        Icon(icon, null, Modifier.size(19.dp), tint = fg)
     }
 }
