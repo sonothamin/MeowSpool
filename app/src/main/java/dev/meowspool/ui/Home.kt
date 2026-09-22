@@ -174,19 +174,16 @@ private fun PrinterHero(p: Printer, st: PState, ui: UiState, onSwitch: () -> Uni
                     if (st.conn == Conn.ERROR) FilledTonalButton(onClick = { PrinterManager.reconnect(p.addr) }, colors = ButtonDefaults.filledTonalButtonColors(containerColor = fg.copy(alpha = 0.16f), contentColor = fg)) {
                         Icon(Icons.Default.Refresh, null); Spacer(Modifier.width(8.dp)); Text("Reconnect")
                     }
-                    if (st.conn == Conn.CONNECTED || st.conn == Conn.CONNECTING) OutlinedButton(
-                        onClick = ui::disconnectPrinter,
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = fg), border = BorderStroke(1.dp, fg.copy(alpha = 0.6f)),
-                    ) { Icon(Icons.Default.LinkOff, null); Spacer(Modifier.width(8.dp)); Text("Disconnect") }
-                    else if (st.conn == Conn.IDLE) OutlinedButton(
-                        onClick = ui::connectPrinter,
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = fg), border = BorderStroke(1.dp, fg.copy(alpha = 0.6f)),
-                    ) { Icon(Icons.Default.Link, null); Spacer(Modifier.width(8.dp)); Text("Connect") }
                     OutlinedButton(
                         onClick = onSwitch,
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = fg),
                         border = BorderStroke(1.dp, fg.copy(alpha = 0.6f)),
                     ) { Icon(Icons.Default.SwapHoriz, null); Spacer(Modifier.width(8.dp)); Text("Switch printer") }
+                    if (st.conn == Conn.CONNECTED || st.conn == Conn.CONNECTING) IconButton(onClick = ui::disconnectPrinter) {
+                        Icon(Icons.Default.LinkOff, "Disconnect", tint = fg)
+                    } else if (st.conn == Conn.IDLE) IconButton(onClick = ui::connectPrinter) {
+                        Icon(Icons.Default.Link, "Connect", tint = fg)
+                    }
                 }
             }
         }
