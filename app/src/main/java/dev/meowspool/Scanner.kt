@@ -39,7 +39,7 @@ class Scanner(private val ctx: Context) {
         _found.value = emptyMap()
         _scanning.value = true
         Dbg.d("Scan", "start")
-        bt.bluetoothLeScanner.startScan(cb)
+        bt.bluetoothLeScanner?.startScan(cb)
         main.postDelayed(stopper, 10_000)
         return true
     }
@@ -48,7 +48,7 @@ class Scanner(private val ctx: Context) {
         main.removeCallbacks(stopper)
         if (!_scanning.value) return
         _scanning.value = false
-        try { ctx.getSystemService(BluetoothManager::class.java).adapter.bluetoothLeScanner.stopScan(cb) } catch (_: Exception) {}
+        try { ctx.getSystemService(BluetoothManager::class.java).adapter?.bluetoothLeScanner?.stopScan(cb) } catch (_: Exception) {}
         Dbg.d("Scan", "stop")
     }
 }
