@@ -160,12 +160,23 @@ fun HistoryDetailScreen(ui: UiState, pad: PaddingValues, e: HistoryEntry, onClos
             Group("Details") {
                 @Composable fun row(label: String, value: String, color: Color = Color.Unspecified) =
                     ListItem(overlineContent = { Text(label) }, headlineContent = { Text(value, color = color) }, colors = clear())
+                @Composable fun chip(text: String) = SuggestionChip(onClick = {}, label = { Text(text) })
                 row("Result", if (e.ok) "Printed" else e.error ?: "Failed", if (e.ok) Color.Unspecified else cs.error)
+                HorizontalDivider(color = cs.outlineVariant.copy(alpha = 0.4f))
                 row("Source", sourceLabel(e.source))
+                HorizontalDivider(color = cs.outlineVariant.copy(alpha = 0.4f))
                 row("Printer", e.printerName)
+                HorizontalDivider(color = cs.outlineVariant.copy(alpha = 0.4f))
                 row("Time", DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.MEDIUM).format(Date(e.time)))
-                row("Length", "${e.rows} rows · about ${e.rows / 8} mm")
+                HorizontalDivider(color = cs.outlineVariant.copy(alpha = 0.4f))
+                ListItem(
+                    overlineContent = { Text("Length") },
+                    headlineContent = { Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { chip("${e.rows} rows"); chip("≈${e.rows / 8} mm") } },
+                    colors = clear(),
+                )
+                HorizontalDivider(color = cs.outlineVariant.copy(alpha = 0.4f))
                 row("Darkness", "${e.darkness}%")
+                HorizontalDivider(color = cs.outlineVariant.copy(alpha = 0.4f))
                 row("Feed after print", "${e.feedMm} mm")
             }
         }
