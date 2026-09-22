@@ -147,15 +147,15 @@ class MeowSpoolService : PrintService() {
                     for (i in 0 until renderer.pageCount) {
                         val page = renderer.openPage(i)
                         try {
-                            val mm = page.width * 25.4f / 72f
-                            val is58 = mm in (Paper.PAPER_MM - 3)..(Paper.PAPER_MM + 3)
-                            val visible = if (is58) page.width * Paper.PRINTABLE_MM / Paper.PAPER_MM else page.width.toFloat()
-                            val scale = CatProtocol.WIDTH / visible
-                            val dx = if (is58) -(page.width - visible) / 2f * scale else 0f
+                            // Scale the whole received page width down to the head's 384 dots — no
+                            // center-cropping. We advertise the full 58 mm as printable (see Paper.sideMils),
+                            // so whatever the source app actually rendered (edge-to-edge or with its own
+                            // margin) is preserved; only the physical head resolution limits it.
+                            val scale = CatProtocol.WIDTH / page.width.toFloat()
                             val h = (page.height * scale).toInt().coerceIn(1, 12000)
                             val bmp = Bitmap.createBitmap(CatProtocol.WIDTH, h, Bitmap.Config.ARGB_8888)
                             bmp.eraseColor(Color.WHITE)
-                            page.render(bmp, null, Matrix().apply { setScale(scale, scale); postTranslate(dx, 0f) }, PdfRenderer.Page.RENDER_MODE_FOR_PRINT)
+                            page.render(bmp, null, Matrix().apply { setScale(scale, scale) }, PdfRenderer.Page.RENDER_MODE_FOR_PRINT)
                             rows += CatProtocol.toRows(bmp)
                             bmp.recycle()
                             Dbg.d(T, "page $i -> ${h} rows")

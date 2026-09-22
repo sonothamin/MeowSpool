@@ -17,15 +17,21 @@ data class PaperPreset(val id: String, val name: String, val lengthMm: Int?, val
     val sizeText get() = "${Paper.PAPER_MM.toInt()} × ${lengthMm?.toString() ?: "continuous"}${if (lengthMm != null) " mm" else ""}"
 }
 
-/** All presets are 58 mm paper with 48 mm (384 dots @ 203 dpi) printable, centred. */
+/** All presets are 58 mm paper; the 384-dot head only inks the centre 48 mm, but we don't advertise
+ * that as an OS-level margin (see sideMils below) since not every printing app honours a declared
+ * margin the same way — some render edge-to-edge across the full width regardless. */
 object Paper {
     const val PAPER_MM = 58f
     const val PRINTABLE_MM = 48f
-    const val SIDE_MARGIN_MILS = 197   // (58-48)/2 mm
     const val WIDTH_MILS = 2283
     fun mils(mm: Int) = (mm / 25.4f * 1000).toInt()
-    /** Hardware gap either side of the 384-dot head, plus the user's extra margin. */
-    fun sideMils() = SIDE_MARGIN_MILS + mils(Prefs.marginSideMm)
+    /** Native (system Print dialog) side margin: only the user's own requested extra margin, not the
+     * physical head-vs-paper gap. Declaring that hardware gap as a margin relies on the printing app
+     * rendering a true blank strip there to be cropped out — some apps (e.g. some PDF/HTML print
+     * paths) instead render content edge-to-edge regardless, so cropping a center slice would discard
+     * real content. Instead we advertise the full width and scale the whole page down to fit the head
+     * (see MeowSpoolService.print()), so nothing is lost either way. */
+    fun sideMils() = mils(Prefs.marginSideMm)
     fun vertMils() = mils(Prefs.marginVertMm)
 
     val builtIns = listOf(
