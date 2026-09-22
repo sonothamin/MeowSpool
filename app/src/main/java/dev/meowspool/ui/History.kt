@@ -107,6 +107,7 @@ private fun HistoryRow(e: HistoryEntry, modifier: Modifier = Modifier, onOpen: (
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun HistoryDetailScreen(ui: UiState, pad: PaddingValues, e: HistoryEntry, onClose: () -> Unit) {
     val ctx = LocalContext.current
@@ -146,14 +147,22 @@ fun HistoryDetailScreen(ui: UiState, pad: PaddingValues, e: HistoryEntry, onClos
         item {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = { ui.reprint(e) }, enabled = hasData && !ui.reprinting, modifier = Modifier.fillMaxWidth().height(52.dp)) {
-                    Icon(Icons.Default.Replay, null); Spacer(Modifier.width(8.dp)); Text(if (ui.reprinting) "Printing…" else "Print again")
+                    if (ui.reprinting) LoadingIndicator(Modifier.size(20.dp), color = LocalContentColor.current) else Icon(Icons.Default.Replay, null)
+                    Spacer(Modifier.width(8.dp)); Text(if (ui.reprinting) "Printing…" else "Print again")
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = { share() }, enabled = preview != null, modifier = Modifier.weight(1f)) { Icon(Icons.Default.Share, null); Spacer(Modifier.width(8.dp)); Text("Share") }
-                    OutlinedButton(onClick = { save.launch("meowspool-${e.id.take(8)}.png") }, enabled = preview != null, modifier = Modifier.weight(1f)) { Icon(Icons.Default.Download, null); Spacer(Modifier.width(8.dp)); Text("Save image") }
-                }
-                TextButton(onClick = { History.remove(e); onClose() }, modifier = Modifier.align(Alignment.End)) {
-                    Icon(Icons.Default.Delete, null); Spacer(Modifier.width(8.dp)); Text("Delete from history")
+                // Expressive ButtonGroup: related, equal-weight actions in one connected row (press "bump" motion
+                // built in) instead of three separate standalone buttons.
+                ButtonGroup(
+                    modifier = Modifier.fillMaxWidth(),
+                    overflowIndicator = { menuState ->
+                        FilledIconButton(onClick = { if (menuState.isExpanded) menuState.dismiss() else menuState.show() }) {
+                            Icon(Icons.Default.MoreVert, "More actions")
+                        }
+                    },
+                ) {
+                    clickableItem(onClick = { share() }, label = "Share", enabled = preview != null)
+                    clickableItem(onClick = { save.launch("meowspool-${e.id.take(8)}.png") }, label = "Save image", enabled = preview != null)
+                    clickableItem(onClick = { History.remove(e); onClose() }, label = "Delete")
                 }
             }
         }
