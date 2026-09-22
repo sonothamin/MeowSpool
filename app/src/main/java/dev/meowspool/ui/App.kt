@@ -142,7 +142,7 @@ private fun Sheet(current: Dest, go: (Dest) -> Unit, style: UiStyle) {
             if (oneUi) {
                 val (bg, fg) = chipColors[index % chipColors.size]
                 Box(Modifier.size(32.dp).background(bg, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
-                    Icon(d.icon, null, Modifier.size(19.dp), tint = fg)
+                    DestIcon(d, style, Modifier.size(19.dp), tint = fg)
                 }
             } else Icon(d.icon, null)
         },
@@ -170,4 +170,12 @@ private fun Sheet(current: Dest, go: (Dest) -> Unit, style: UiStyle) {
             item(Dest.About, idx)
         }
     }
+}
+
+/** Renders a real OneUI icon when one resolved for [style], else the Material vector already used elsewhere. */
+@Composable
+private fun DestIcon(d: Dest, style: UiStyle, modifier: Modifier = Modifier, tint: Color = LocalContentColor.current) {
+    val resId = d.resolvedIconRes(style)
+    if (resId != null) Icon(painterResource(resId), null, modifier, tint = tint)
+    else Icon(d.icon, null, modifier, tint = tint)
 }

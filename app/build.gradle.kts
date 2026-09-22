@@ -20,6 +20,11 @@ android {
     composeOptions { kotlinCompilerExtensionVersion = "1.5.14" }
 }
 dependencies {
+    // Real OneUI icon set (github.com/OneUIProject/oneui-icons) for One UI style; resources are looked
+    // up by name at runtime (see OneUiIcon in ui/Theme.kt) with a Material fallback, since the exact
+    // ic_oui_* filenames couldn't be verified from this environment (GitHub's file browser blocks
+    // automated access here) — a wrong guess degrades to the Material icon instead of failing.
+    implementation("io.github.oneuiproject:icons:1.1.0")
     implementation(platform("androidx.compose:compose-bom:2024.06.00"))
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")

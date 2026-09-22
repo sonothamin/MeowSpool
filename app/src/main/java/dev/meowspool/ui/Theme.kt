@@ -171,3 +171,45 @@ fun Modifier.glassBackdrop(style: UiStyle, dark: Boolean): Modifier = if (style 
         )
     )
 )
+
+/**
+ * Real OneUI icons (github.com/OneUIProject/oneui-icons, MIT), pulled in as the `io.github.oneuiproject:icons`
+ * library. Its resources land in this app's own R class after Gradle's resource merge, under whatever name
+ * that library ships (convention: `ic_oui_<name>`). Those exact filenames couldn't be verified from this
+ * environment — GitHub's file browser isn't reachable here — so rather than hardcode a guess that might not
+ * compile, each destination is tried against a short list of plausible names via [Resources.getIdentifier]
+ * at runtime, and falls back to the Material icon already used everywhere else if none of them exist.
+ */
+private fun oneUiIconRes(ctx: Context, vararg candidates: String): Int? {
+    val res = ctx.resources
+    for (name in candidates) {
+        val id = res.getIdentifier(name, "drawable", ctx.packageName)
+        if (id != 0) return id
+    }
+    return null
+}
+
+/** Candidate `ic_oui_*` names per destination — see [oneUiIconRes]. Widen this list if you find the real names. */
+private val oneUiCandidates: Map<Dest, List<String>> = mapOf(
+    Dest.Home to listOf("ic_oui_home", "ic_oui_home_outline"),
+    Dest.Direct to listOf("ic_oui_file_upload", "ic_oui_upload", "ic_oui_document"),
+    Dest.Devices to listOf("ic_oui_bluetooth", "ic_oui_bluetooth_outline"),
+    Dest.History to listOf("ic_oui_history", "ic_oui_time_history"),
+    Dest.Paper to listOf("ic_oui_file", "ic_oui_file_text", "ic_oui_description"),
+    Dest.Print to listOf("ic_oui_control", "ic_oui_settings_outline", "ic_oui_tune"),
+    Dest.Server to listOf("ic_oui_server", "ic_oui_dns", "ic_oui_network"),
+    Dest.Look to listOf("ic_oui_color_swatch", "ic_oui_palette", "ic_oui_paint"),
+    Dest.Log to listOf("ic_oui_bug", "ic_oui_debug"),
+    Dest.About to listOf("ic_oui_info", "ic_oui_info_outline"),
+)
+
+/** [Dest.icon] to use for the current style: a real OneUI vector when [UiStyle.ONE_UI] and a matching
+ * resource actually resolved, otherwise the Material [ImageVector] this app already ships. Returns
+ * either an [Int] drawable resource id or an [androidx.compose.ui.graphics.vector.ImageVector] — render
+ * with painterResource(id) or rememberVectorPainter accordingly (see IconFor in ui/App.kt). */
+@Composable
+fun Dest.resolvedIconRes(style: UiStyle): Int? {
+    if (style != UiStyle.ONE_UI) return null
+    val ctx = LocalContext.current
+    return remember(this, style) { oneUiCandidates[this]?.let { oneUiIconRes(ctx, *it.toTypedArray()) } }
+}
