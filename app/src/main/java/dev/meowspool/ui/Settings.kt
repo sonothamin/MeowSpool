@@ -226,7 +226,7 @@ private fun StyleDropdown(ui: UiState) {
     val current = UiStyle.fromPref(ui.uiStyle)
     ExposedDropdownMenuBox(expanded = open, onExpandedChange = { open = it }, modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
         OutlinedTextField(
-            value = if (current == UiStyle.GLASS) "Glass" else "Material", onValueChange = {}, readOnly = true,
+            value = when (current) { UiStyle.GLASS -> "Glass"; UiStyle.ONE_UI -> "One UI"; else -> "Material" }, onValueChange = {}, readOnly = true,
             label = { Text("Style") },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = open) },
             modifier = Modifier.menuAnchor().fillMaxWidth(),
@@ -234,6 +234,7 @@ private fun StyleDropdown(ui: UiState) {
         ExposedDropdownMenu(expanded = open, onDismissRequest = { open = false }) {
             DropdownMenuItem(text = { Text("Material") }, onClick = { ui.uiStyle = "material"; open = false })
             DropdownMenuItem(text = { Text("Glass") }, onClick = { ui.uiStyle = "glass"; open = false })
+            DropdownMenuItem(text = { Text("One UI") }, onClick = { ui.uiStyle = "oneui"; open = false })
         }
     }
 }

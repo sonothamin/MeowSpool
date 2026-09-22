@@ -83,9 +83,12 @@ private fun MainShell(ui: UiState, style: UiStyle) {
                     topBar = {
                         TopAppBar(
                             title = {
-                                if (dest == Dest.Home) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    Icon(painterResource(R.drawable.ic_meowspool), null, Modifier.size(28.dp)); Text(dest.title)
-                                } else Text(if (dest == Dest.History && detail != null) "Print details" else dest.title)
+                                val titleStyle = if (style == UiStyle.ONE_UI) MaterialTheme.typography.headlineSmall else LocalTextStyle.current
+                                CompositionLocalProvider(LocalTextStyle provides titleStyle) {
+                                    if (dest == Dest.Home) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        Icon(painterResource(R.drawable.ic_meowspool), null, Modifier.size(28.dp)); Text(dest.title)
+                                    } else Text(if (dest == Dest.History && detail != null) "Print details" else dest.title)
+                                }
                             },
                             navigationIcon = { if (dest != Dest.Home) IconButton(onClick = { if (detail != null) detail = null else dest = Dest.Home }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back") } },
                             actions = { IconButton(onClick = { scope.launch { drawer.open() } }) { Icon(Icons.Default.Menu, "Menu") } },

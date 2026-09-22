@@ -55,3 +55,29 @@ tasks.register("fetchNothingFonts") {
     }
 }
 tasks.named("preBuild") { dependsOn("fetchNothingFonts") }
+
+// Samsung's own One UI faces, same not-ours-to-redistribute situation as the Nothing fonts above.
+// Fetched on demand for the "One UI" style (see UiStyle.ONE_UI in ui/Theme.kt): SamsungSans for
+// titles/headings, SamsungOne for body text. Missing fetch => One UI style just falls back to the
+// default typeface rather than failing the build.
+tasks.register("fetchSamsungFonts") {
+    val dir = File(projectDir, "src/main/assets/fonts")
+    val files = mapOf(
+        "samsungsans.ttf" to "https://raw.githubusercontent.com/Odrha23/samsung-sans/master/SamsungSans-Regular.ttf",
+        "samsungone.ttf" to "https://raw.githubusercontent.com/putrairvaan/Font-TTF/master/SamsungOne-400.ttf",
+    )
+    doLast {
+        dir.mkdirs()
+        files.forEach { (name, url) ->
+            val f = File(dir, name)
+            if (f.exists()) return@forEach
+            try {
+                println("MeowSpool: fetching $name for One UI style…")
+                URL(url).openStream().use { input -> f.outputStream().use { input.copyTo(it) } }
+            } catch (e: Exception) {
+                println("MeowSpool: couldn't fetch $name (${e.message}); One UI style will use the default typeface.")
+            }
+        }
+    }
+}
+tasks.named("preBuild") { dependsOn("fetchSamsungFonts") }

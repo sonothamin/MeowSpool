@@ -11,6 +11,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
@@ -52,6 +54,10 @@ private fun assetPath(f: UiFont): String? = when (f) {
     else -> null
 }
 
+// One UI style's own faces, fetched the same way as Ndot/NType above (see fetchSamsungFonts in app/build.gradle.kts).
+private fun samsungSansFamily(ctx: Context): FontFamily? = assetFamily(ctx, "fonts/samsungsans.ttf")
+private fun samsungOneFamily(ctx: Context): FontFamily? = assetFamily(ctx, "fonts/samsungone.ttf")
+
 private fun assetFamily(ctx: Context, path: String): FontFamily? = try {
     ctx.assets.open(path).close() // throws if the fetch task never produced this file
     FontFamily(Typeface.createFromAsset(ctx.assets, path))
@@ -72,10 +78,10 @@ private fun headingFamily(ctx: Context, f: UiFont): FontFamily? = when (f) {
     UiFont.NDOT, UiFont.NTYPE -> assetPath(f)?.let { assetFamily(ctx, it) }
 }
 
-private fun typographyFor(heading: FontFamily?, body: FontFamily?): Typography {
+private fun typographyFor(heading: FontFamily?, body: FontFamily?, boldHeadings: Boolean = false): Typography {
     if (heading == null) return Typography()
     val base = Typography()
-    fun TextStyle.h() = copy(fontFamily = heading)
+    fun TextStyle.h() = copy(fontFamily = heading, fontWeight = if (boldHeadings) FontWeight.Bold else fontWeight)
     fun TextStyle.b() = copy(fontFamily = body)
     return Typography(
         displayLarge = base.displayLarge.h(), displayMedium = base.displayMedium.h(), displaySmall = base.displaySmall.h(),
@@ -87,10 +93,22 @@ private fun typographyFor(heading: FontFamily?, body: FontFamily?): Typography {
 }
 
 /** "Material" is the normal opaque M3 look. "Glass" makes card/container surfaces translucent so the
- * soft gradient backdrop shows through, for a frosted-glass feel. */
-enum class UiStyle { MATERIAL, GLASS;
-    companion object { fun fromPref(v: String) = if (v == "glass") GLASS else MATERIAL }
+ * soft gradient backdrop shows through, for a frosted-glass feel. "One UI" follows Samsung's One UI
+ * design guide: big bold left-aligned titles (SamsungSans), SamsungOne body text, large 26/20/12dp
+ * rounded corners, and generous 24dp margins. */
+enum class UiStyle { MATERIAL, GLASS, ONE_UI;
+    companion object { fun fromPref(v: String) = when (v) { "glass" -> GLASS; "oneui" -> ONE_UI; else -> MATERIAL } }
 }
+
+private val OneUiLight = lightColorScheme(primary = Color(0xFF1259A8), secondaryContainer = Color(0xFFD8E7FA))
+private val OneUiDark = darkColorScheme(primary = Color(0xFF63A6ED), secondaryContainer = Color(0xFF1C3A57))
+
+/** One UI's characteristic oversized rounded corners: 26dp for hero/large surfaces, 20dp for cards, 12dp for small controls. */
+private val OneUiShapes = Shapes(
+    extraSmall = RoundedCornerShape(12.dp), small = RoundedCornerShape(12.dp),
+    medium = RoundedCornerShape(20.dp), large = RoundedCornerShape(20.dp),
+    extraLarge = RoundedCornerShape(26.dp),
+)
 
 /** [mode]: 0 system, 1 light, 2 dark. Dynamic (wallpaper) colour on Android 12+ when [dynamic].
  * [amoled] flattens dark-mode backgrounds/surfaces to true black (OLED power saving, no grey haze). [font] picks the UI typeface.
@@ -100,6 +118,7 @@ fun MeowSpoolTheme(mode: Int, dynamic: Boolean, font: UiFont = UiFont.DEFAULT, a
     val dark = when (mode) { 1 -> false; 2 -> true; else -> isSystemInDarkTheme() }
     val ctx = LocalContext.current
     var scheme = when {
+        style == UiStyle.ONE_UI -> if (dark) OneUiDark else OneUiLight
         dynamic && Build.VERSION.SDK_INT >= 31 -> if (dark) dynamicDarkColorScheme(ctx) else dynamicLightColorScheme(ctx)
         dark -> Dark
         else -> Light
@@ -126,10 +145,21 @@ fun MeowSpoolTheme(mode: Int, dynamic: Boolean, font: UiFont = UiFont.DEFAULT, a
         )
     }
     // If a picked font's asset never fetched (e.g. built offline), fall back to Default rather than crash.
-    val heading = remember(font) { headingFamily(ctx, font) }
-    val body = remember(heading, font.titlesOnly) { if (font.titlesOnly) InterFamily else heading }
-    val typography = remember(heading, body) { typographyFor(heading, body) }
-    MaterialTheme(colorScheme = scheme, typography = typography, content = content)
+    val heading: FontFamily?
+    val body: FontFamily?
+    val boldHeadings: Boolean
+    if (style == UiStyle.ONE_UI) {
+        heading = remember(ctx) { samsungSansFamily(ctx) }
+        body = remember(ctx) { samsungOneFamily(ctx) ?: heading }
+        boldHeadings = true
+    } else {
+        heading = remember(font) { headingFamily(ctx, font) }
+        body = remember(heading, font.titlesOnly) { if (font.titlesOnly) InterFamily else heading }
+        boldHeadings = false
+    }
+    val typography = remember(heading, body, boldHeadings) { typographyFor(heading, body, boldHeadings) }
+    val shapes = if (style == UiStyle.ONE_UI) OneUiShapes else Shapes()
+    MaterialTheme(colorScheme = scheme, typography = typography, shapes = shapes, content = content)
 }
 
 /** The soft diagonal gradient that shows through translucent Glass-mode surfaces. No-op (fully transparent) in Material mode. */
