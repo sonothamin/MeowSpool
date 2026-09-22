@@ -70,7 +70,7 @@ fun MeowSpoolRoot(ui: UiState) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun MainShell(ui: UiState, style: UiStyle) {
     var dest by rememberSaveable { mutableStateOf(Dest.Home) }
@@ -123,7 +123,7 @@ private fun MainShell(ui: UiState, style: UiStyle) {
                             val scanning by ui.scanning.collectAsState()
                             ExtendedFloatingActionButton(
                                 onClick = { if (!scanning) ui.requestScan() },
-                                icon = { if (scanning) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp) else Icon(Icons.Default.Search, null) },
+                                icon = { if (scanning) LoadingIndicator(Modifier.size(20.dp)) else Icon(Icons.Default.Search, null) },
                                 text = { Text(if (scanning) "Scanning…" else "Scan") },
                             )
                         }
