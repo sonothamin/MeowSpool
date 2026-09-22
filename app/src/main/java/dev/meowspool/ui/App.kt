@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -148,6 +149,7 @@ private fun Sheet(current: Dest, go: (Dest) -> Unit, style: UiStyle) {
             } else Icon(d.icon, null)
         },
         selected = d == current, onClick = { go(d) }, modifier = Modifier.padding(horizontal = 12.dp),
+        // MD3 spec: nav drawer item active indicator uses the "full" (pill) shape; One UI keeps its own large-rounded look.
         shape = if (oneUi) RoundedCornerShape(20.dp) else CircleShape,
         colors = if (oneUi) NavigationDrawerItemDefaults.colors(
             selectedContainerColor = cs.primary.copy(alpha = 0.14f), unselectedContainerColor = Color.Transparent,
@@ -155,10 +157,14 @@ private fun Sheet(current: Dest, go: (Dest) -> Unit, style: UiStyle) {
             selectedIconColor = cs.onSurface, unselectedIconColor = cs.onSurface,
         ) else NavigationDrawerItemDefaults.colors(),
     )
-    ModalDrawerSheet(drawerShape = RoundedCornerShape(topEnd = if (oneUi) 26.dp else 16.dp, bottomEnd = if (oneUi) 26.dp else 16.dp)) {
+    // MD3 spec: modal navigation drawer uses the "large" (16dp) end-corner shape token; One UI keeps its 26dp signature.
+    val drawerShape = if (oneUi) RoundedCornerShape(topEnd = 26.dp, bottomEnd = 26.dp)
+        else MaterialTheme.shapes.large.copy(topStart = CornerSize(0.dp), bottomStart = CornerSize(0.dp))
+    ModalDrawerSheet(drawerShape = drawerShape) {
         Column(Modifier.verticalScroll(rememberScrollState()).padding(bottom = 12.dp)) {
             Row(Modifier.padding(horizontal = 28.dp, vertical = 24.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                Box(Modifier.size(44.dp).background(cs.primaryContainer, if (oneUi) RoundedCornerShape(14.dp) else RoundedCornerShape(14.dp)), contentAlignment = Alignment.Center) {
+                // MD3 shape scale: 44dp avatar-style containers map to the "medium" (12dp) corner token; One UI keeps its own 14dp.
+                Box(Modifier.size(44.dp).background(cs.primaryContainer, if (oneUi) RoundedCornerShape(14.dp) else MaterialTheme.shapes.medium), contentAlignment = Alignment.Center) {
                     Icon(painterResource(R.drawable.ic_meowspool), null, Modifier.size(28.dp), tint = cs.onPrimaryContainer)
                 }
                 Column {
