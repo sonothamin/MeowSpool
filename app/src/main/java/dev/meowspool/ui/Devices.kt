@@ -23,10 +23,13 @@ fun DevicesScreen(ui: UiState, pad: PaddingValues) {
     Page(pad) {
         if (ui.saved.isNotEmpty()) {
             item { SectionHeader("My printers") }
-            items(ui.saved.size) { i ->
+            items(ui.saved.size, key = { ui.saved[it].addr }) { i ->
                 val p = ui.saved[i]; val on = p.addr == ui.selected
                 val sum = if (on) summarize(states[p.addr] ?: PState()) else null
-                Card(colors = CardDefaults.cardColors(containerColor = if (on) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerLow)) {
+                Card(
+                    modifier = Modifier.animateItem(), // smooth reflow when a saved printer's selection/status changes
+                    colors = CardDefaults.cardColors(containerColor = if (on) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerLow),
+                ) {
                     ListItem(
                         headlineContent = { Text(p.name) },
                         supportingContent = { Text(sum?.title ?: p.addr) },
@@ -44,9 +47,12 @@ fun DevicesScreen(ui: UiState, pad: PaddingValues) {
                 Text(if (scanning) "Looking for printers… turn yours on and keep it close." else "No new printers. Tap Scan to search.", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
-        items(fresh.size) { i ->
+        items(fresh.size, key = { fresh[it].addr }) { i ->
             val p = fresh[i]
-            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
+            Card(
+                modifier = Modifier.animateItem(), // newly-discovered printers slide/fade into place as scan results stream in
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+            ) {
                 ListItem(
                     headlineContent = { Text(p.name) }, supportingContent = { Text(p.addr) },
                     leadingContent = { OneUiChipIcon(Icons.Default.Bluetooth, ui) },
