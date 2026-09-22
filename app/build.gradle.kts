@@ -3,21 +3,23 @@ import java.net.URL
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 android {
     namespace = "dev.meowspool"
-    compileSdk = 34
+    compileSdk = 35
     defaultConfig {
         applicationId = "dev.meowspool"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "0.1"
     }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     kotlinOptions { jvmTarget = "17" }
     buildFeatures { compose = true }
-    composeOptions { kotlinCompilerExtensionVersion = "1.5.14" }
+    // No composeOptions/kotlinCompilerExtensionVersion needed: the Compose Compiler Gradle plugin
+    // (applied above) derives the compiler version from the Kotlin version automatically.
 }
 dependencies {
     // Real OneUI icon set (github.com/OneUIProject/oneui-icons) for One UI style; resources are looked
@@ -25,8 +27,13 @@ dependencies {
     // ic_oui_* filenames couldn't be verified from this environment (GitHub's file browser blocks
     // automated access here) — a wrong guess degrades to the Material icon instead of failing.
     implementation("io.github.oneuiproject:icons:1.1.0")
-    implementation(platform("androidx.compose:compose-bom:2024.06.00"))
-    implementation("androidx.compose.material3:material3")
+    implementation(platform("androidx.compose:compose-bom:2025.12.00"))
+    // Expressive (LoadingIndicator, ButtonGroup, SplitButtonLayout, HorizontalFloatingToolbar, FAB menu)
+    // isn't in the BOM's pinned stable 1.4.0 yet — those components only exist from 1.5.0-alpha onward.
+    // Pinned to alpha22 specifically: it's the release where ButtonGroup was promoted to non-experimental
+    // and SplitButtonLayout is still the current (non-deprecated) name — later alphas rename/reshuffle
+    // these APIs, so this version is a deliberate, narrower target rather than "whatever's newest".
+    implementation("androidx.compose.material3:material3:1.5.0-alpha22")
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.compose.ui:ui")
     implementation("androidx.activity:activity-compose:1.9.0")

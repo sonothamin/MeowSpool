@@ -1,4 +1,7 @@
 plugins {
-    id("com.android.application") version "8.5.2" apply false
-    id("org.jetbrains.kotlin.android") version "1.9.24" apply false
+    id("com.android.application") version "8.7.2" apply false
+    id("org.jetbrains.kotlin.android") version "2.1.0" apply false
+    // Expressive components (LoadingIndicator, ButtonGroup, SplitButton, FloatingToolbar, FAB menu) only
+    // exist behind the Compose Compiler Gradle plugin path (Kotlin 2.0+), not the old kotlinCompilerExtensionVersion.
+    id("org.jetbrains.kotlin.plugin.compose") version "2.1.0" apply false
 }
