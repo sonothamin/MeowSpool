@@ -145,25 +145,15 @@ fun HistoryDetailScreen(ui: UiState, pad: PaddingValues, e: HistoryEntry, onClos
         }
         if (!hasData) item { Text("Full page data wasn’t saved for this older print, so only a preview is available.", style = MaterialTheme.typography.bodySmall, color = cs.onSurfaceVariant) }
         item {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = { ui.reprint(e) }, enabled = hasData && !ui.reprinting, modifier = Modifier.fillMaxWidth().height(52.dp)) {
-                    if (ui.reprinting) LoadingIndicator(Modifier.size(20.dp), color = LocalContentColor.current) else Icon(Icons.Default.Replay, null)
-                    Spacer(Modifier.width(8.dp)); Text(if (ui.reprinting) "Printing…" else "Print again")
+            // Icon-only actions, centered: the primary action (reprint) stands out filled, the
+            // rest are tonal so the row reads as one balanced group rather than a stack of full labels.
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally), verticalAlignment = Alignment.CenterVertically) {
+                FilledIconButton(onClick = { ui.reprint(e) }, enabled = hasData && !ui.reprinting, modifier = Modifier.size(52.dp)) {
+                    if (ui.reprinting) LoadingIndicator(Modifier.size(20.dp), color = LocalContentColor.current) else Icon(Icons.Default.Replay, "Print again")
                 }
-                // Expressive ButtonGroup: related, equal-weight actions in one connected row (press "bump" motion
-                // built in) instead of three separate standalone buttons.
-                ButtonGroup(
-                    modifier = Modifier.fillMaxWidth(),
-                    overflowIndicator = { menuState ->
-                        FilledIconButton(onClick = { if (menuState.isShowing) menuState.dismiss() else menuState.show() }) {
-                            Icon(Icons.Default.MoreVert, "More actions")
-                        }
-                    },
-                ) {
-                    clickableItem(onClick = { share() }, label = "Share", enabled = preview != null)
-                    clickableItem(onClick = { save.launch("meowspool-${e.id.take(8)}.png") }, label = "Save image", enabled = preview != null)
-                    clickableItem(onClick = { History.remove(e); onClose() }, label = "Delete")
-                }
+                FilledTonalIconButton(onClick = { share() }, enabled = preview != null, modifier = Modifier.size(52.dp)) { Icon(Icons.Default.Share, "Share") }
+                FilledTonalIconButton(onClick = { save.launch("meowspool-${e.id.take(8)}.png") }, enabled = preview != null, modifier = Modifier.size(52.dp)) { Icon(Icons.Default.Download, "Save image") }
+                FilledTonalIconButton(onClick = { History.remove(e); onClose() }, modifier = Modifier.size(52.dp)) { Icon(Icons.Default.Delete, "Delete") }
             }
         }
         item {
