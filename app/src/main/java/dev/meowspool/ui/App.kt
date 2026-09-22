@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -147,7 +148,7 @@ private fun Sheet(current: Dest, go: (Dest) -> Unit, style: UiStyle) {
             } else Icon(d.icon, null)
         },
         selected = d == current, onClick = { go(d) }, modifier = Modifier.padding(horizontal = 12.dp),
-        shape = if (oneUi) RoundedCornerShape(20.dp) else NavigationDrawerItemDefaults.shape,
+        shape = if (oneUi) RoundedCornerShape(20.dp) else CircleShape,
     )
     ModalDrawerSheet(drawerShape = RoundedCornerShape(topEnd = if (oneUi) 26.dp else 16.dp, bottomEnd = if (oneUi) 26.dp else 16.dp)) {
         Column(Modifier.verticalScroll(rememberScrollState()).padding(bottom = 12.dp)) {
