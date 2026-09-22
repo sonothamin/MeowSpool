@@ -155,7 +155,7 @@ fun HistoryDetailScreen(ui: UiState, pad: PaddingValues, e: HistoryEntry, onClos
                 ButtonGroup(
                     modifier = Modifier.fillMaxWidth(),
                     overflowIndicator = { menuState ->
-                        FilledIconButton(onClick = { if (menuState.isExpanded) menuState.dismiss() else menuState.show() }) {
+                        FilledIconButton(onClick = { if (menuState.isShowing) menuState.dismiss() else menuState.show() }) {
                             Icon(Icons.Default.MoreVert, "More actions")
                         }
                     },
