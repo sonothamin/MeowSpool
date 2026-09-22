@@ -107,9 +107,10 @@ object Prefs {
     var amoled: Boolean
         get() = sp.getBoolean("amoled", false)
         set(v) = sp.edit().putBoolean("amoled", v).apply()
-    /** "material" or "glass". */
+    /** "material", "glass", or "oneui". Defaults to One UI on Samsung hardware so it's the experience
+     * right from onboarding, not something the person has to go find in a menu. */
     var uiStyle: String
-        get() = sp.getString("uiStyle", "material") ?: "material"
+        get() = sp.getString("uiStyle", null) ?: if (android.os.Build.MANUFACTURER.equals("samsung", ignoreCase = true)) "oneui" else "material"
         set(v) = sp.edit().putString("uiStyle", v).apply()
     /** Name of a dev.meowspool.ui.UiFont; blank/unknown falls back to the platform default. */
     var uiFont: String

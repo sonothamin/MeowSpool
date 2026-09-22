@@ -75,7 +75,7 @@ private fun MainShell(ui: UiState, style: UiStyle) {
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         ModalNavigationDrawer(
             drawerState = drawer,
-            drawerContent = { CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) { Sheet(dest, ::go) } },
+            drawerContent = { CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) { Sheet(dest, ::go, style) } },
         ) {
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
                 Scaffold(
@@ -130,16 +130,29 @@ private fun MainShell(ui: UiState, style: UiStyle) {
 }
 
 @Composable
-private fun Sheet(current: Dest, go: (Dest) -> Unit) {
+private fun Sheet(current: Dest, go: (Dest) -> Unit, style: UiStyle) {
     val cs = MaterialTheme.colorScheme
-    @Composable fun item(d: Dest) = NavigationDrawerItem(
-        label = { Text(if (d == Dest.Home) "Home" else d.title) }, icon = { Icon(d.icon, null) },
+    val oneUi = style == UiStyle.ONE_UI
+    // One UI settings-style leading icons: each sits in its own colour chip instead of a flat glyph,
+    // cycling through the palette so the list reads as more than one shade of grey.
+    val chipColors = listOf(cs.primaryContainer to cs.onPrimaryContainer, cs.tertiaryContainer to cs.onTertiaryContainer, cs.secondaryContainer to cs.onSecondaryContainer, cs.errorContainer to cs.onErrorContainer)
+    @Composable fun item(d: Dest, index: Int) = NavigationDrawerItem(
+        label = { Text(if (d == Dest.Home) "Home" else d.title) },
+        icon = {
+            if (oneUi) {
+                val (bg, fg) = chipColors[index % chipColors.size]
+                Box(Modifier.size(32.dp).background(bg, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
+                    Icon(d.icon, null, Modifier.size(19.dp), tint = fg)
+                }
+            } else Icon(d.icon, null)
+        },
         selected = d == current, onClick = { go(d) }, modifier = Modifier.padding(horizontal = 12.dp),
+        shape = if (oneUi) RoundedCornerShape(20.dp) else NavigationDrawerItemDefaults.shape,
     )
-    ModalDrawerSheet {
+    ModalDrawerSheet(drawerShape = RoundedCornerShape(topEnd = if (oneUi) 26.dp else 16.dp, bottomEnd = if (oneUi) 26.dp else 16.dp)) {
         Column(Modifier.verticalScroll(rememberScrollState()).padding(bottom = 12.dp)) {
             Row(Modifier.padding(horizontal = 28.dp, vertical = 24.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                Box(Modifier.size(44.dp).background(cs.primaryContainer, RoundedCornerShape(14.dp)), contentAlignment = Alignment.Center) {
+                Box(Modifier.size(44.dp).background(cs.primaryContainer, if (oneUi) RoundedCornerShape(14.dp) else RoundedCornerShape(14.dp)), contentAlignment = Alignment.Center) {
                     Icon(painterResource(R.drawable.ic_meowspool), null, Modifier.size(28.dp), tint = cs.onPrimaryContainer)
                 }
                 Column {
@@ -147,13 +160,14 @@ private fun Sheet(current: Dest, go: (Dest) -> Unit) {
                     Text("Cat printer print service", style = MaterialTheme.typography.bodySmall, color = cs.onSurfaceVariant)
                 }
             }
+            var idx = 0
             sections.forEach { (heading, items) ->
                 if (heading == null) HorizontalDivider(Modifier.padding(horizontal = 28.dp, vertical = 4.dp))
                 else Text(heading, style = MaterialTheme.typography.titleSmall, color = cs.primary, modifier = Modifier.padding(start = 28.dp, top = 16.dp, bottom = 8.dp))
-                items.forEach { item(it) }
+                items.forEach { item(it, idx); idx++ }
             }
             HorizontalDivider(Modifier.padding(horizontal = 28.dp, vertical = 12.dp))
-            item(Dest.About)
+            item(Dest.About, idx)
         }
     }
 }
