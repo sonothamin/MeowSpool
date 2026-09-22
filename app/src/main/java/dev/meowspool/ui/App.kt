@@ -149,6 +149,11 @@ private fun Sheet(current: Dest, go: (Dest) -> Unit, style: UiStyle) {
         },
         selected = d == current, onClick = { go(d) }, modifier = Modifier.padding(horizontal = 12.dp),
         shape = if (oneUi) RoundedCornerShape(20.dp) else CircleShape,
+        colors = if (oneUi) NavigationDrawerItemDefaults.colors(
+            selectedContainerColor = cs.primary.copy(alpha = 0.14f), unselectedContainerColor = Color.Transparent,
+            selectedTextColor = cs.primary, unselectedTextColor = cs.onSurface,
+            selectedIconColor = cs.onSurface, unselectedIconColor = cs.onSurface,
+        ) else NavigationDrawerItemDefaults.colors(),
     )
     ModalDrawerSheet(drawerShape = RoundedCornerShape(topEnd = if (oneUi) 26.dp else 16.dp, bottomEnd = if (oneUi) 26.dp else 16.dp)) {
         Column(Modifier.verticalScroll(rememberScrollState()).padding(bottom = 12.dp)) {
