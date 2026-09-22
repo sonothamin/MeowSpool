@@ -26,11 +26,6 @@ android {
     // (applied above) derives the compiler version from the Kotlin version automatically.
 }
 dependencies {
-    // Real OneUI icon set (github.com/OneUIProject/oneui-icons) for One UI style; resources are looked
-    // up by name at runtime (see OneUiIcon in ui/Theme.kt) with a Material fallback, since the exact
-    // ic_oui_* filenames couldn't be verified from this environment (GitHub's file browser blocks
-    // automated access here) — a wrong guess degrades to the Material icon instead of failing.
-    implementation("io.github.oneuiproject:icons:1.1.0")
     implementation(platform("androidx.compose:compose-bom:2025.12.00"))
     // Expressive (LoadingIndicator, ButtonGroup, SplitButtonLayout, HorizontalFloatingToolbar, FAB menu)
     // isn't in the BOM's pinned stable 1.4.0 yet — those components only exist from 1.5.0-alpha onward.
@@ -72,15 +67,13 @@ tasks.register("fetchNothingFonts") {
 }
 tasks.named("preBuild") { dependsOn("fetchNothingFonts") }
 
-// Samsung's own One UI faces, same not-ours-to-redistribute situation as the Nothing fonts above.
-// Fetched on demand for the "One UI" style (see UiStyle.ONE_UI in ui/Theme.kt): SamsungSans for
-// titles/headings, SamsungOne for body text. Missing fetch => One UI style just falls back to the
-// default typeface rather than failing the build.
+// Samsung's own Samsung Sans face, same not-ours-to-redistribute situation as the Nothing fonts above.
+// Fetched on demand for the "Samsung Sans" UI font option (see UiFont.SAMSUNG_SANS in ui/Theme.kt).
+// Missing fetch => that font option just isn't offered, rather than failing the build.
 tasks.register("fetchSamsungFonts") {
     val dir = File(projectDir, "src/main/assets/fonts")
     val files = mapOf(
         "samsungsans.ttf" to "https://raw.githubusercontent.com/Odrha23/samsung-sans/master/SamsungSans-Regular.ttf",
-        "samsungone.ttf" to "https://raw.githubusercontent.com/putrairvaan/Font-TTF/master/SamsungOne-400.ttf",
     )
     doLast {
         dir.mkdirs()
@@ -88,10 +81,10 @@ tasks.register("fetchSamsungFonts") {
             val f = File(dir, name)
             if (f.exists()) return@forEach
             try {
-                println("MeowSpool: fetching $name for One UI style…")
+                println("MeowSpool: fetching $name…")
                 URL(url).openStream().use { input -> f.outputStream().use { input.copyTo(it) } }
             } catch (e: Exception) {
-                println("MeowSpool: couldn't fetch $name (${e.message}); One UI style will use the default typeface.")
+                println("MeowSpool: couldn't fetch $name (${e.message}); that font just won't be offered.")
             }
         }
     }
