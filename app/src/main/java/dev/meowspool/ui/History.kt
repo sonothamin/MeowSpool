@@ -79,14 +79,14 @@ fun HistoryScreen(pad: PaddingValues, onOpen: (HistoryEntry) -> Unit) {
                     TextButton(onClick = { confirmClear = true }) { Icon(Icons.Default.DeleteSweep, null); Spacer(Modifier.width(8.dp)); Text("Clear all") }
                 }
             }
-            items(entries.size) { i -> HistoryRow(entries[i]) { onOpen(entries[i]) } }
+            items(entries.size, key = { entries[it].id }) { i -> HistoryRow(entries[i], Modifier.animateItem()) { onOpen(entries[i]) } }
         }
     }
 }
 
 @Composable
-private fun HistoryRow(e: HistoryEntry, onOpen: () -> Unit) {
-    Card(onClick = onOpen, modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
+private fun HistoryRow(e: HistoryEntry, modifier: Modifier = Modifier, onOpen: () -> Unit) {
+    Card(onClick = onOpen, modifier = modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
         Row(Modifier.padding(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
             val bmp = remember(e.id) { runCatching { BitmapFactory.decodeFile(e.thumbFile.path) }.getOrNull() }
             Box(
