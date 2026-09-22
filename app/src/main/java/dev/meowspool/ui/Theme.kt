@@ -135,6 +135,7 @@ object MotionTokens {
 /** [mode]: 0 system, 1 light, 2 dark. Dynamic (wallpaper) colour on Android 12+ when [dynamic].
  * [amoled] flattens dark-mode backgrounds/surfaces to true black (OLED power saving, no grey haze). [font] picks the UI typeface.
  * [style]: Material (opaque) or Glass (translucent containers over a gradient backdrop). */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun MeowSpoolTheme(mode: Int, dynamic: Boolean, font: UiFont = UiFont.DEFAULT, amoled: Boolean = false, style: UiStyle = UiStyle.MATERIAL, content: @Composable () -> Unit) {
     val dark = when (mode) { 1 -> false; 2 -> true; else -> isSystemInDarkTheme() }
@@ -181,7 +182,9 @@ fun MeowSpoolTheme(mode: Int, dynamic: Boolean, font: UiFont = UiFont.DEFAULT, a
     }
     val typography = remember(heading, body, boldHeadings) { typographyFor(heading, body, boldHeadings) }
     val shapes = if (style == UiStyle.ONE_UI) OneUiShapes else PixelShapes
-    MaterialTheme(colorScheme = scheme, typography = typography, shapes = shapes, content = content)
+    // Expressive theme: spring-based MotionScheme.expressive() instead of the static utility easing curves —
+    // this is what gives buttons/FABs/switches their "bounce" rather than a flat linear move.
+    MaterialExpressiveTheme(colorScheme = scheme, typography = typography, shapes = shapes, motionScheme = MotionScheme.expressive(), content = content)
 }
 
 /** The soft diagonal gradient that shows through translucent Glass-mode surfaces. No-op (fully transparent) in Material mode. */
