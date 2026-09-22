@@ -2,6 +2,12 @@ package dev.meowspool.ui
 
 import androidx.activity.compose.BackHandler
 import dev.meowspool.Dbg
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -109,21 +115,33 @@ private fun MainShell(ui: UiState, style: UiStyle) {
                         }
                     },
                 ) { pad ->
-                    when (dest) {
-                        Dest.Home -> HomeScreen(ui, pad, ::go)
-                        Dest.Direct -> PrintFileScreen(ui, pad, ::go)
-                        Dest.Devices -> DevicesScreen(ui, pad)
-                        Dest.History -> {
-                            val entries by History.entries.collectAsState()
-                            val open = entries.firstOrNull { it.id == detail }
-                            if (open != null) HistoryDetailScreen(ui, pad, open) { detail = null } else HistoryScreen(pad) { detail = it.id }
+                    // M3 shared-axis transition: incoming content fades/slides in with the emphasized-decelerate
+                    // curve, outgoing content fades/slides out with emphasized-accelerate (per MD3 motion spec).
+                    AnimatedContent(
+                        targetState = dest to detail,
+                        label = "destination",
+                        transitionSpec = {
+                            (fadeIn(tween(MotionTokens.DurationEnter, easing = MotionTokens.EmphasizedDecelerate)) +
+                                slideInHorizontally(tween(MotionTokens.DurationEnter, easing = MotionTokens.EmphasizedDecelerate)) { it / 12 })
+                                .togetherWith(fadeOut(tween(MotionTokens.DurationExit, easing = MotionTokens.EmphasizedAccelerate)))
+                        },
+                    ) { (curDest, curDetail) ->
+                        when (curDest) {
+                            Dest.Home -> HomeScreen(ui, pad, ::go)
+                            Dest.Direct -> PrintFileScreen(ui, pad, ::go)
+                            Dest.Devices -> DevicesScreen(ui, pad)
+                            Dest.History -> {
+                                val entries by History.entries.collectAsState()
+                                val open = entries.firstOrNull { it.id == curDetail }
+                                if (open != null) HistoryDetailScreen(ui, pad, open) { detail = null } else HistoryScreen(pad) { detail = it.id }
+                            }
+                            Dest.Paper -> PaperScreen(ui, pad)
+                            Dest.Print -> PrintSettingsScreen(ui, pad)
+                            Dest.Server -> ServerScreen(ui, pad)
+                            Dest.Look -> AppearanceScreen(ui, pad)
+                            Dest.Log -> LogScreen(pad)
+                            Dest.About -> AboutScreen(pad)
                         }
-                        Dest.Paper -> PaperScreen(ui, pad)
-                        Dest.Print -> PrintSettingsScreen(ui, pad)
-                        Dest.Server -> ServerScreen(ui, pad)
-                        Dest.Look -> AppearanceScreen(ui, pad)
-                        Dest.Log -> LogScreen(pad)
-                        Dest.About -> AboutScreen(pad)
                     }
                 }
             }
