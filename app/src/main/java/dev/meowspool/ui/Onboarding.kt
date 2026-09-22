@@ -32,6 +32,7 @@ import dev.meowspool.R
 private const val LAST = 4
 
 /** Friendly first-run flow: welcome → power on → pick printer → stay awake (battery) → done. */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun OnboardingScreen(ui: UiState) {
     var step by rememberSaveable { mutableIntStateOf(0) }
@@ -71,7 +72,7 @@ fun OnboardingScreen(ui: UiState) {
                             }
                             2 -> {
                                 Hero {
-                                    if (scanning) CircularProgressIndicator(Modifier.size(80.dp), strokeWidth = 6.dp, color = cs.onPrimaryContainer)
+                                    if (scanning) LoadingIndicator(Modifier.size(80.dp), color = cs.onPrimaryContainer)
                                     else Icon(Icons.Default.BluetoothSearching, null, Modifier.size(80.dp), tint = cs.onPrimaryContainer)
                                 }
                                 Title(when { scanning && found.isEmpty() -> "Looking for your printer…"; found.isEmpty() -> "No printer found yet"; else -> "Tap your printer" })

@@ -43,7 +43,7 @@ private fun SliderRow(label: String, valueText: String, v: Float, range: ClosedF
 private fun SwitchRow(label: String, icon: androidx.compose.ui.graphics.vector.ImageVector, on: Boolean, onChange: (Boolean) -> Unit, ui: UiState) =
     ListItem(headlineContent = { Text(label) }, leadingContent = { OneUiChipIcon(icon, ui) }, colors = clear(), trailingContent = { Switch(on, onChange) })
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PrintFileScreen(ui: UiState, pad: PaddingValues, go: (Dest) -> Unit) {
     val ctx = LocalContext.current
@@ -156,7 +156,7 @@ fun PrintFileScreen(ui: UiState, pad: PaddingValues, go: (Dest) -> Unit) {
         item {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Button(onClick = { send() }, enabled = ui.selectedPrinter != null && !sending && preview != null, modifier = Modifier.fillMaxWidth().height(56.dp)) {
-                    if (sending) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp, color = LocalContentColor.current) else Icon(Icons.Default.Print, null)
+                    if (sending) LoadingIndicator(Modifier.size(20.dp), color = LocalContentColor.current) else Icon(Icons.Default.Print, null)
                     Spacer(Modifier.width(8.dp))
                     Text(if (sending) "Printing…" else if (s.copies > 1) "Print ${s.copies} copies" else "Print", style = MaterialTheme.typography.titleMedium)
                 }

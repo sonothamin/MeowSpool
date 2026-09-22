@@ -24,7 +24,7 @@ import dev.meowspool.TestPage
  * Shown on top of everything else whenever a test print is requested, anywhere in the app.
  * Requires an explicit confirm tap so an accidental "Test page" press doesn't waste paper.
  */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TestPrintConfirmScreen(ui: UiState) {
     BackHandler(onBack = ui::cancelTestPrint)
@@ -55,7 +55,7 @@ fun TestPrintConfirmScreen(ui: UiState) {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     OutlinedButton(onClick = ui::cancelTestPrint, enabled = !ui.testing, modifier = Modifier.weight(1f)) { Text("Cancel") }
                     Button(onClick = ui::confirmTestPrint, enabled = !ui.testing && p != null, modifier = Modifier.weight(1f)) {
-                        if (ui.testing) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp) else Icon(Icons.Default.Print, null)
+                        if (ui.testing) LoadingIndicator(Modifier.size(18.dp)) else Icon(Icons.Default.Print, null)
                         Spacer(Modifier.width(8.dp)); Text(if (ui.testing) "Printing…" else "Print it")
                     }
                 }
