@@ -6,7 +6,14 @@ import java.text.DateFormat
 import java.util.Date
 
 data class PaperPreset(val id: String, val name: String, val lengthMm: Int?, val builtIn: Boolean) {
-    val heightMils get() = lengthMm?.let { Paper.mils(it) } ?: 11000
+    // For the continuous ("roll") preset there's no real page length to report, but apps that print via
+    // androidx PrintHelper default to SCALE_MODE_FILL: they scale the source image to *cover* the full
+    // declared page and crop the overflow. An old "US Letter" placeholder (11 in ≈ 279 mm) against our
+    // 48 mm printable width is a ~5.8:1 page — far taller than a typical single receipt (~3.5–4:1), so
+    // FILL cropped ~1/3 off the sides. 200 mm (~4.2:1) matches typical receipts far more closely and
+    // keeps that crop minimal; very long documents will still lose some width under FILL-based apps,
+    // but our own PrintFileScreen always renders true-to-width regardless of this fallback.
+    val heightMils get() = lengthMm?.let { Paper.mils(it) } ?: Paper.mils(200)
     val sizeText get() = "${Paper.PAPER_MM.toInt()} × ${lengthMm?.toString() ?: "continuous"}${if (lengthMm != null) " mm" else ""}"
 }
 
