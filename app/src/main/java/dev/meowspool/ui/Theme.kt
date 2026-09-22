@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Typeface
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -110,6 +111,27 @@ private val OneUiShapes = Shapes(
     extraLarge = RoundedCornerShape(26.dp),
 )
 
+/** The "Pixel" look used by Material/Glass: Google's own apps (Settings, Phone, Pixel Launcher) sit on the more
+ * generous end of the official M3 Expressive shape scale rather than the conservative 4/8/12/16/28dp defaults.
+ * Every value below is a real M3 token (see the shape-corner table), just the roomier sibling of each role:
+ * small→extra-small-of-old, medium/large use the "increased" expressive steps, extraLarge stays the spec max. */
+private val PixelShapes = Shapes(
+    extraSmall = RoundedCornerShape(8.dp),
+    small = RoundedCornerShape(12.dp),
+    medium = RoundedCornerShape(16.dp),
+    large = RoundedCornerShape(20.dp), // large-increased
+    extraLarge = RoundedCornerShape(28.dp),
+)
+
+/** M3's legacy easing/duration system, still the spec for screen-level enter/exit transitions
+ * (component motion uses spring physics instead — see MaterialTheme.motionScheme). */
+object MotionTokens {
+    val EmphasizedDecelerate = CubicBezierEasing(0.05f, 0.7f, 0.1f, 1f) // enters the screen, 400ms
+    val EmphasizedAccelerate = CubicBezierEasing(0.3f, 0f, 0.8f, 0.15f) // exits the screen, 200ms
+    const val DurationEnter = 400
+    const val DurationExit = 200
+}
+
 /** [mode]: 0 system, 1 light, 2 dark. Dynamic (wallpaper) colour on Android 12+ when [dynamic].
  * [amoled] flattens dark-mode backgrounds/surfaces to true black (OLED power saving, no grey haze). [font] picks the UI typeface.
  * [style]: Material (opaque) or Glass (translucent containers over a gradient backdrop). */
@@ -158,7 +180,7 @@ fun MeowSpoolTheme(mode: Int, dynamic: Boolean, font: UiFont = UiFont.DEFAULT, a
         boldHeadings = false
     }
     val typography = remember(heading, body, boldHeadings) { typographyFor(heading, body, boldHeadings) }
-    val shapes = if (style == UiStyle.ONE_UI) OneUiShapes else Shapes()
+    val shapes = if (style == UiStyle.ONE_UI) OneUiShapes else PixelShapes
     MaterialTheme(colorScheme = scheme, typography = typography, shapes = shapes, content = content)
 }
 
