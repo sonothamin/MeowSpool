@@ -7,11 +7,13 @@ plugins {
 }
 android {
     namespace = "dev.meowspool"
-    compileSdk = 35
+    // material3 1.5.0-alpha22 requires compiling against API 37 (see AGP/compileSdk compatibility table);
+    // AGP 9.1.1 is the minimum AGP that supports compileSdk 37.
+    compileSdk = 37
     defaultConfig {
         applicationId = "dev.meowspool"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
         versionName = "0.1"
     }
