@@ -2,7 +2,6 @@ package dev.meowspool.ui
 
 import android.content.Intent
 import android.provider.Settings
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -90,7 +89,7 @@ fun HomeScreen(ui: UiState, pad: PaddingValues, go: (Dest) -> Unit) {
         ui.crash?.let { c -> item { CrashCard(c, ui::dismissCrash) } }
         if (!ui.serviceOn) item {
             Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
-                Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.Print, null)
                     Column(Modifier.weight(1f)) {
                         Text("Print service is off", style = MaterialTheme.typography.titleSmall)
@@ -136,28 +135,27 @@ private fun NoPrinter(onFind: () -> Unit) {
 private fun PrinterHero(p: Printer, st: PState, ui: UiState, onSwitch: () -> Unit) {
     val sum = summarize(st)
     val cs = MaterialTheme.colorScheme
-    // Calm "print ready" card by default; only an actual error turns it red. No more loud
-    // colouring (or a wall of "Paper OK"/"Battery OK" chips) just because everything is fine.
     val danger = sum.level == Level.ERROR
-    val bg = if (danger) cs.errorContainer else cs.surfaceContainerLow
-    val fg = if (danger) cs.onErrorContainer else cs.onSurface
     val problems = statusItems(st).filter { it.problem }
     val ready = st.conn == Conn.CONNECTED && st.status?.blocking != true && !st.printing && !ui.testing
     val avatar = if (ui.deviceAvatars) avatarFor(p.name) else null
 
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        // Showcase: the printer itself is the hero, full-size on plain ground — not boxed like an avatar.
+    // MD3 spacing uses an 8dp grid; 8/16/24 throughout instead of ad-hoc values.
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         if (avatar != null && !sum.loading) Box(Modifier.fillMaxWidth().height(220.dp), contentAlignment = Alignment.Center) {
             AvatarReveal(avatar)
         }
 
-        // Status strip: name, state, detail, problem chips.
-        Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = bg, contentColor = fg)) {
-            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        // A real error is the one state worth a distinct container; otherwise this is just an
+        // elevated tonal surface, one step up from the page background — the correct MD3 way to
+        // show "this card matters more," rather than hand-mixing custom colours.
+        val (containerColor, contentColor) = if (danger) cs.errorContainer to cs.onErrorContainer else cs.surfaceContainerHigh to cs.onSurface
+        Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = containerColor, contentColor = contentColor)) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    if (avatar == null) Box(Modifier.size(48.dp).background(fg.copy(alpha = 0.12f), CircleShape), contentAlignment = Alignment.Center) {
-                        if (sum.loading) CircularProgressIndicator(Modifier.size(26.dp), strokeWidth = 3.dp, color = fg)
-                        else Icon(if (danger) Icons.Default.Warning else Icons.Default.Print, null, Modifier.size(26.dp))
+                    if (avatar == null) Box(Modifier.size(48.dp).background(contentColor.copy(alpha = 0.12f), CircleShape), contentAlignment = Alignment.Center) {
+                        if (sum.loading) CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 3.dp, color = contentColor)
+                        else Icon(if (danger) Icons.Default.Warning else Icons.Default.Print, null, Modifier.size(24.dp))
                     }
                     Column(Modifier.weight(1f)) {
                         Text(p.name, style = MaterialTheme.typography.labelLarge)
@@ -165,32 +163,35 @@ private fun PrinterHero(p: Printer, st: PState, ui: UiState, onSwitch: () -> Uni
                         sum.detail?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
                     }
                 }
-                if (problems.isNotEmpty()) StatusChips(problems, fg)
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Button(onClick = ui::requestTestPrint, enabled = ready, colors = ButtonDefaults.buttonColors(containerColor = fg, contentColor = bg)) {
+                if (problems.isNotEmpty()) StatusChips(problems, contentColor)
+                // Standard M3 button roles — filled for the primary action, tonal for a secondary
+                // one, outlined for a lower-emphasis action — rather than custom-tinted variants.
+                // That keeps every button correctly paired (container + its own "on" colour) even
+                // when this whole card is sitting on the error-container tone.
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(onClick = ui::requestTestPrint, enabled = ready) {
                         if (ui.testing) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp) else Icon(Icons.Default.ReceiptLong, null)
                         Spacer(Modifier.width(8.dp)); Text(if (ui.testing) "Printing…" else "Test page")
                     }
-                    if (st.conn == Conn.ERROR) FilledTonalButton(onClick = { PrinterManager.reconnect(p.addr) }, colors = ButtonDefaults.filledTonalButtonColors(containerColor = fg.copy(alpha = 0.16f), contentColor = fg)) {
+                    if (st.conn == Conn.ERROR) FilledTonalButton(onClick = { PrinterManager.reconnect(p.addr) }) {
                         Icon(Icons.Default.Refresh, null); Spacer(Modifier.width(8.dp)); Text("Reconnect")
                     }
-                    OutlinedButton(
-                        onClick = onSwitch,
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = fg),
-                        border = BorderStroke(1.dp, fg.copy(alpha = 0.6f)),
-                    ) { Icon(Icons.Default.SwapHoriz, null); Spacer(Modifier.width(8.dp)); Text("Switch printer") }
+                    OutlinedButton(onClick = onSwitch) {
+                        Icon(Icons.Default.SwapHoriz, null); Spacer(Modifier.width(8.dp)); Text("Switch printer")
+                    }
                     if (st.conn == Conn.CONNECTED || st.conn == Conn.CONNECTING) IconButton(onClick = ui::disconnectPrinter) {
-                        Icon(Icons.Default.LinkOff, "Disconnect", tint = fg)
+                        Icon(Icons.Default.LinkOff, "Disconnect")
                     } else if (st.conn == Conn.IDLE) IconButton(onClick = ui::connectPrinter) {
-                        Icon(Icons.Default.Link, "Connect", tint = fg)
+                        Icon(Icons.Default.Link, "Connect")
                     }
                 }
             }
         }
 
-        // Feed/retract: its own box, separate from status.
+        // Feed/retract: its own tonal surface, one step below the status card — a distinct but
+        // lower-emphasis grouping, using the same surface-container ladder rather than a flat colour.
         Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = cs.surfaceContainerLow)) {
-            Row(Modifier.padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(onClick = ui::feed, enabled = ready, modifier = Modifier.weight(1f)) {
                     Icon(Icons.Default.ArrowUpward, null); Spacer(Modifier.width(8.dp)); Text("Feed")
                 }
