@@ -2,7 +2,8 @@ import java.net.URL
 
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
+    // org.jetbrains.kotlin.android removed: AGP 9.0+ has built-in Kotlin support and this
+    // plugin is no longer required (see developer.android.com/build/migrate-to-built-in-kotlin).
     id("org.jetbrains.kotlin.plugin.compose")
 }
 android {
@@ -17,8 +18,9 @@ android {
         versionCode = 1
         versionName = "0.1"
     }
+    // Built-in Kotlin derives kotlin.compilerOptions.jvmTarget from targetCompatibility below,
+    // so no separate kotlinOptions{} block is needed.
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
-    kotlinOptions { jvmTarget = "17" }
     buildFeatures { compose = true }
     // No composeOptions/kotlinCompilerExtensionVersion needed: the Compose Compiler Gradle plugin
     // (applied above) derives the compiler version from the Kotlin version automatically.
