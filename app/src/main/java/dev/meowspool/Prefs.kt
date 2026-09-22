@@ -107,6 +107,10 @@ object Prefs {
     var amoled: Boolean
         get() = sp.getBoolean("amoled", false)
         set(v) = sp.edit().putBoolean("amoled", v).apply()
+    /** "material" or "glass". */
+    var uiStyle: String
+        get() = sp.getString("uiStyle", "material") ?: "material"
+        set(v) = sp.edit().putString("uiStyle", v).apply()
     /** Name of a dev.meowspool.ui.UiFont; blank/unknown falls back to the platform default. */
     var uiFont: String
         get() = sp.getString("uiFont", "") ?: ""

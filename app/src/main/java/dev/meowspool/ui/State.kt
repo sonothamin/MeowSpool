@@ -57,6 +57,7 @@ class UiState(
     var dynamicColor by PrefState(Prefs.dynamicColor) { Prefs.dynamicColor = it }
     var deviceAvatars by PrefState(Prefs.deviceAvatars) { Prefs.deviceAvatars = it }
     var amoled by PrefState(Prefs.amoled) { Prefs.amoled = it }
+    var uiStyle by PrefState(Prefs.uiStyle) { Prefs.uiStyle = it }
     var uiFont by PrefState(UiFont.fromPref()) { Prefs.uiFont = it.name }
 
     // Print server

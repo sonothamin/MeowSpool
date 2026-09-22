@@ -191,6 +191,7 @@ fun AppearanceScreen(ui: UiState, pad: PaddingValues) {
                     leadingContent = { Icon(Icons.Default.Contrast, null) }, colors = clear(),
                     trailingContent = { Switch(ui.amoled, { ui.amoled = it }) },
                 )
+                StyleDropdown(ui)
                 ListItem(
                     headlineContent = { Text("Device pictures") }, supportingContent = { Text("Show a picture of your printer on Home when its model is recognised") },
                     leadingContent = { Icon(Icons.Default.Image, null) }, colors = clear(),
@@ -214,6 +215,25 @@ fun AppearanceScreen(ui: UiState, pad: PaddingValues) {
                     )
                 }
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun StyleDropdown(ui: UiState) {
+    var open by remember { mutableStateOf(false) }
+    val current = UiStyle.fromPref(ui.uiStyle)
+    ExposedDropdownMenuBox(expanded = open, onExpandedChange = { open = it }, modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+        OutlinedTextField(
+            value = if (current == UiStyle.GLASS) "Glass" else "Material", onValueChange = {}, readOnly = true,
+            label = { Text("Style") },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = open) },
+            modifier = Modifier.menuAnchor().fillMaxWidth(),
+        )
+        ExposedDropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            DropdownMenuItem(text = { Text("Material") }, onClick = { ui.uiStyle = "material"; open = false })
+            DropdownMenuItem(text = { Text("Glass") }, onClick = { ui.uiStyle = "glass"; open = false })
         }
     }
 }

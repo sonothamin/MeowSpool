@@ -16,6 +16,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.LayoutDirection
@@ -46,9 +47,11 @@ private val sections = listOf(
 
 @Composable
 fun MeowSpoolRoot(ui: UiState) {
-    MeowSpoolTheme(ui.themeMode, ui.dynamicColor, ui.uiFont, ui.amoled) {
-        Box(Modifier.fillMaxSize()) {
-            if (ui.onboarding) OnboardingScreen(ui) else MainShell(ui)
+    val style = UiStyle.fromPref(ui.uiStyle)
+    val dark = when (ui.themeMode) { 1 -> false; 2 -> true; else -> androidx.compose.foundation.isSystemInDarkTheme() }
+    MeowSpoolTheme(ui.themeMode, ui.dynamicColor, ui.uiFont, ui.amoled, style) {
+        Box(Modifier.fillMaxSize().glassBackdrop(style, dark)) {
+            if (ui.onboarding) OnboardingScreen(ui) else MainShell(ui, style)
             // Overlaid on top of whichever screen triggered it, so "test print" always confirms first.
             if (ui.testConfirm) TestPrintConfirmScreen(ui)
         }
@@ -57,7 +60,7 @@ fun MeowSpoolRoot(ui: UiState) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun MainShell(ui: UiState) {
+private fun MainShell(ui: UiState, style: UiStyle) {
     var dest by rememberSaveable { mutableStateOf(Dest.Home) }
     var detail by rememberSaveable { mutableStateOf<String?>(null) }
     val drawer = rememberDrawerState(DrawerValue.Closed)
@@ -76,6 +79,7 @@ private fun MainShell(ui: UiState) {
         ) {
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
                 Scaffold(
+                    containerColor = if (style == UiStyle.GLASS) Color.Transparent else MaterialTheme.colorScheme.background,
                     topBar = {
                         TopAppBar(
                             title = {
@@ -85,6 +89,7 @@ private fun MainShell(ui: UiState) {
                             },
                             navigationIcon = { if (dest != Dest.Home) IconButton(onClick = { if (detail != null) detail = null else dest = Dest.Home }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back") } },
                             actions = { IconButton(onClick = { scope.launch { drawer.open() } }) { Icon(Icons.Default.Menu, "Menu") } },
+                            colors = if (style == UiStyle.GLASS) TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent, scrolledContainerColor = Color.Transparent) else TopAppBarDefaults.topAppBarColors(),
                         )
                     },
                     snackbarHost = { SnackbarHost(ui.snack) },
