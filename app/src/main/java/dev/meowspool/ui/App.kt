@@ -3,11 +3,15 @@ package dev.meowspool.ui
 import androidx.activity.compose.BackHandler
 import dev.meowspool.Dbg
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -78,6 +82,7 @@ private fun MainShell(ui: UiState, style: UiStyle) {
     BackHandler(detail != null && drawer.isClosed) { detail = null }
     fun go(d: Dest) { dest = d; detail = null; scope.launch { drawer.close() } }
     LaunchedEffect(ui.incomingShare) { Dbg.d("Share", "MainShell sees incomingShare=${ui.incomingShare}"); if (ui.incomingShare != null) go(Dest.Direct) }
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior() // tints/elevates the bar as content scrolls under it, Pixel-app style
 
     // Drawer slides in from the right: mirror the layout direction around it, keep content LTR.
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
@@ -87,6 +92,7 @@ private fun MainShell(ui: UiState, style: UiStyle) {
         ) {
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
                 Scaffold(
+                    modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
                     containerColor = if (style == UiStyle.GLASS) Color.Transparent else MaterialTheme.colorScheme.background,
                     topBar = {
                         TopAppBar(
@@ -101,11 +107,19 @@ private fun MainShell(ui: UiState, style: UiStyle) {
                             navigationIcon = { if (dest != Dest.Home) IconButton(onClick = { if (detail != null) detail = null else dest = Dest.Home }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back") } },
                             actions = { IconButton(onClick = { scope.launch { drawer.open() } }) { Icon(Icons.Default.Menu, "Menu") } },
                             colors = if (style == UiStyle.GLASS) TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent, scrolledContainerColor = Color.Transparent) else TopAppBarDefaults.topAppBarColors(),
+                            scrollBehavior = scrollBehavior,
                         )
                     },
                     snackbarHost = { SnackbarHost(ui.snack) },
                     floatingActionButton = {
-                        if (dest == Dest.Devices) {
+                        // FAB scales/fades in with the emphasized-decelerate curve rather than popping in instantly.
+                        AnimatedVisibility(
+                            visible = dest == Dest.Devices,
+                            enter = fadeIn(tween(MotionTokens.DurationEnter, easing = MotionTokens.EmphasizedDecelerate)) +
+                                scaleIn(tween(MotionTokens.DurationEnter, easing = MotionTokens.EmphasizedDecelerate), initialScale = 0.6f),
+                            exit = fadeOut(tween(MotionTokens.DurationExit, easing = MotionTokens.EmphasizedAccelerate)) +
+                                scaleOut(tween(MotionTokens.DurationExit, easing = MotionTokens.EmphasizedAccelerate), targetScale = 0.6f),
+                        ) {
                             val scanning by ui.scanning.collectAsState()
                             ExtendedFloatingActionButton(
                                 onClick = { if (!scanning) ui.requestScan() },
