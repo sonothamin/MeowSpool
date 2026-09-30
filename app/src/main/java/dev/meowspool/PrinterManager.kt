@@ -20,12 +20,12 @@ data class PState(
  * and polls status. Holders: the app UI (selected printer), the print service (tracking / jobs).
  * The connection is released [GRACE_MS] after the last holder lets go.
  */
+@android.annotation.SuppressLint("StaticFieldLeak") // holds only the application context (see init)
 object PrinterManager {
     private const val T = "Manager"
     private const val GRACE_MS = 30_000L
     private const val POLL_MS = 2_500L
 
-    @android.annotation.SuppressLint("StaticFieldLeak") // always the application context (see init)
     private lateinit var app: Context
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val lock = ReentrantLock()                      // serialises radio I/O (poll vs print)

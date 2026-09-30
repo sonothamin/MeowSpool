@@ -42,8 +42,8 @@ android {
         }
     }
     testOptions { unitTests.isReturnDefaultValues = true }
-    // UseKtx is stylistic noise (41 hits); targetSdk stays 36 until 37 behaviour changes are tested.
-    lint { abortOnError = false; checkReleaseBuilds = false; disable += "UseKtx"; informational += "OldTargetApi" }
+    // UseKtx is stylistic noise; version-pin checks are off because Material 3 alpha22 / AGP / Gradle are pinned on purpose; targetSdk stays 36 until 37 behaviour changes are tested.
+    lint { abortOnError = false; checkReleaseBuilds = false; disable += listOf("UseKtx", "GradleDependency", "NewerVersionAvailable", "AndroidGradlePluginVersion"); informational += "OldTargetApi" }
     // No composeOptions/kotlinCompilerExtensionVersion needed: the Compose Compiler Gradle plugin
     // (applied above) derives the compiler version from the Kotlin version automatically.
 }
@@ -59,7 +59,7 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.activity:activity-compose:1.13.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
-    implementation("androidx.exifinterface:exifinterface:1.4.1")
+    implementation("androidx.exifinterface:exifinterface:1.4.2")
     implementation("com.google.zxing:core:3.5.4")
     testImplementation("junit:junit:4.13.2")
 }
