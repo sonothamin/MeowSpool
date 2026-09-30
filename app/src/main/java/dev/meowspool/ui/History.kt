@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -44,7 +45,7 @@ private fun sourceLabel(s: HistorySource) = when (s) {
     HistorySource.REPRINT -> "Reprint"
 }
 private fun sourceIcon(s: HistorySource): ImageVector = when (s) {
-    HistorySource.TEST -> Icons.Default.ReceiptLong
+    HistorySource.TEST -> Icons.AutoMirrored.Filled.ReceiptLong
     HistorySource.DIRECT -> Icons.Default.UploadFile
     HistorySource.SERVICE -> Icons.Default.Print
     HistorySource.API -> Icons.Default.Dns

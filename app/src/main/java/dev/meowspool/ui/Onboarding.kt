@@ -73,7 +73,7 @@ fun OnboardingScreen(ui: UiState) {
                             2 -> {
                                 Hero {
                                     if (scanning) LoadingIndicator(Modifier.size(80.dp), color = cs.onPrimaryContainer)
-                                    else Icon(Icons.Default.BluetoothSearching, null, Modifier.size(80.dp), tint = cs.onPrimaryContainer)
+                                    else Icon(Icons.AutoMirrored.Filled.BluetoothSearching, null, Modifier.size(80.dp), tint = cs.onPrimaryContainer)
                                 }
                                 Title(when { scanning && found.isEmpty() -> "Looking for your printer…"; found.isEmpty() -> "No printer found yet"; else -> "Tap your printer" })
                                 if (found.isEmpty() && !scanning) Body("Check it’s on and not connected to another phone, then try again.")
@@ -139,7 +139,7 @@ fun OnboardingScreen(ui: UiState) {
                         }
                         else -> {
                             OutlinedButton(onClick = ui::requestTestPrint, enabled = ui.canTest, modifier = Modifier.fillMaxWidth().height(52.dp)) {
-                                Icon(Icons.Default.ReceiptLong, null); Spacer(Modifier.width(8.dp)); Text(if (ui.testing) "Printing…" else "Print a test page")
+                                Icon(Icons.AutoMirrored.Filled.ReceiptLong, null); Spacer(Modifier.width(8.dp)); Text(if (ui.testing) "Printing…" else "Print a test page")
                             }
                             BigButton("Done", onClick = ui::finishOnboarding)
                         }

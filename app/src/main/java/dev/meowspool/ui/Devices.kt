@@ -3,6 +3,7 @@ package dev.meowspool.ui
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -43,7 +44,7 @@ fun DevicesScreen(ui: UiState, pad: PaddingValues) {
         item { SectionHeader("Nearby") }
         if (fresh.isEmpty()) item {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                Icon(Icons.Default.BluetoothSearching, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                Icon(Icons.AutoMirrored.Filled.BluetoothSearching, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(if (scanning) "Looking for printers… turn yours on and keep it close." else "No new printers. Tap Scan to search.", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }

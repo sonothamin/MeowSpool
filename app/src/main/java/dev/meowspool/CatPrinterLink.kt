@@ -90,7 +90,9 @@ class CatPrinterLink(private val ctx: Context, private val addr: String) : AutoC
         val adapter = ctx.getSystemService(BluetoothManager::class.java).adapter
             ?: throw IOException("No Bluetooth")
         if (!adapter.isEnabled) throw IOException("Bluetooth is off")
-        gatt = adapter.getRemoteDevice(address).connectGatt(ctx, false, cb, BluetoothDevice.TRANSPORT_LE)
+        @Suppress("DEPRECATION") // 4-arg overload is the only one available down to minSdk 26
+        val g = adapter.getRemoteDevice(address).connectGatt(ctx, false, cb, BluetoothDevice.TRANSPORT_LE)
+        gatt = g
         wait(sConn, 15000, "connect")
         gatt!!.requestMtu(247); sMtu.tryAcquire(3, TimeUnit.SECONDS)
         gatt!!.discoverServices(); wait(sSvc, 10000, "service discovery")

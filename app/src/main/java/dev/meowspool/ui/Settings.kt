@@ -9,14 +9,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -126,7 +125,7 @@ fun PrintSettingsScreen(ui: UiState, pad: PaddingValues) {
         }
         item {
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = ui::requestTestPrint, enabled = ui.canTest) { Icon(Icons.Default.ReceiptLong, null); Spacer(Modifier.width(8.dp)); Text("Print test page") }
+                Button(onClick = ui::requestTestPrint, enabled = ui.canTest) { Icon(Icons.AutoMirrored.Filled.ReceiptLong, null); Spacer(Modifier.width(8.dp)); Text("Print test page") }
                 OutlinedButton(onClick = ui::resetPrintSettings) { Icon(Icons.Default.RestartAlt, null); Spacer(Modifier.width(8.dp)); Text("Reset") }
             }
         }
@@ -138,7 +137,7 @@ fun LogScreen(pad: PaddingValues) {
     val version by Dbg.version.collectAsState()
     var errorsOnly by remember { mutableStateOf(false) }
     val lines = remember(version, errorsOnly) { Dbg.snapshot().let { l -> if (errorsOnly) l.filter { " E/" in it } else l } }
-    val clip = LocalClipboardManager.current
+    val copy = rememberCopy()
     val ctx = LocalContext.current
     val list = rememberLazyListState()
     LaunchedEffect(lines.size) { if (lines.isNotEmpty()) list.scrollToItem(lines.lastIndex) }
@@ -147,7 +146,7 @@ fun LogScreen(pad: PaddingValues) {
             FilterChip(!errorsOnly, { errorsOnly = false }, { Text("All") })
             FilterChip(errorsOnly, { errorsOnly = true }, { Text("Errors") })
             Spacer(Modifier.weight(1f))
-            IconButton(onClick = { clip.setText(AnnotatedString(lines.joinToString("\n"))) }) { Icon(Icons.Default.ContentCopy, "Copy") }
+            IconButton(onClick = { copy(lines.joinToString("\n")) }) { Icon(Icons.Default.ContentCopy, "Copy") }
             IconButton(onClick = {
                 ctx.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, lines.joinToString("\n")), "Share log"))
             }) { Icon(Icons.Default.Share, "Share") }

@@ -6,9 +6,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -50,7 +52,7 @@ data class StatusItem(val icon: ImageVector, val label: String, val problem: Boo
 fun statusItems(s: PState): List<StatusItem> {
     val conn = when (s.conn) {
         Conn.CONNECTED -> StatusItem(Icons.Default.Bluetooth, "Connected", false)
-        Conn.CONNECTING -> StatusItem(Icons.Default.BluetoothSearching, "Connecting", false)
+        Conn.CONNECTING -> StatusItem(Icons.AutoMirrored.Filled.BluetoothSearching, "Connecting", false)
         Conn.ERROR -> StatusItem(Icons.Default.BluetoothDisabled, "Disconnected", true)
         Conn.IDLE -> StatusItem(Icons.Default.BluetoothDisabled, "Not connected", false)
     }
@@ -112,4 +114,14 @@ fun Page(pad: PaddingValues, content: LazyListScope.() -> Unit) {
 @Composable
 fun OneUiChipIcon(icon: ImageVector, ui: UiState, modifier: Modifier = Modifier) {
     Icon(icon, null, modifier)
+}
+
+/** Returns a function that copies text to the clipboard (LocalClipboard is suspend-based, so launch it here). */
+@Composable
+fun rememberCopy(label: String = "MeowSpool"): (String) -> Unit {
+    val clip = androidx.compose.ui.platform.LocalClipboard.current
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    return { text ->
+        scope.launch { clip.setClipEntry(androidx.compose.ui.platform.ClipEntry(android.content.ClipData.newPlainText(label, text))) }
+    }
 }

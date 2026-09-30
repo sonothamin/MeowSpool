@@ -27,8 +27,8 @@ class MainActivity : ComponentActivity() {
 
     private val notif = registerForActivityResult(ActivityResultContracts.RequestPermission()) {}
 
-    override fun onCreate(s: Bundle?) {
-        super.onCreate(s)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         ui = UiState(Scanner(this), SnackbarHostState(), lifecycleScope).also {
             it.serviceCheck = ::serviceEnabled

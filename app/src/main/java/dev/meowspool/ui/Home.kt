@@ -13,9 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -122,7 +120,7 @@ fun HomeScreen(ui: UiState, pad: PaddingValues, go: (Dest) -> Unit) {
 private fun NoPrinter(onFind: () -> Unit) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(24.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Icon(Icons.Default.BluetoothSearching, null, Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
+            Icon(Icons.AutoMirrored.Filled.BluetoothSearching, null, Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
             Text("No printer yet", style = MaterialTheme.typography.titleLarge)
             Text("Turn your printer on and keep it close.", color = MaterialTheme.colorScheme.onSurfaceVariant)
             Button(onClick = onFind) { Icon(Icons.Default.Search, null); Spacer(Modifier.width(8.dp)); Text("Find printers") }
@@ -170,7 +168,7 @@ private fun PrinterHero(p: Printer, st: PState, ui: UiState, onSwitch: () -> Uni
                 // when this whole card is sitting on the error-container tone.
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(onClick = ui::requestTestPrint, enabled = ready) {
-                        if (ui.testing) LoadingIndicator(Modifier.size(18.dp)) else Icon(Icons.Default.ReceiptLong, null)
+                        if (ui.testing) LoadingIndicator(Modifier.size(18.dp)) else Icon(Icons.AutoMirrored.Filled.ReceiptLong, null)
                         Spacer(Modifier.width(8.dp)); Text(if (ui.testing) "Printing…" else "Test page")
                     }
                     if (st.conn == Conn.ERROR) FilledTonalButton(onClick = { PrinterManager.reconnect(p.addr) }) {
@@ -223,13 +221,13 @@ private fun SetupCard(ui: UiState, go: (Dest) -> Unit) {
 
 @Composable
 private fun CrashCard(crash: String, onDismiss: () -> Unit) {
-    val clip = LocalClipboardManager.current
+    val copy = rememberCopy()
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("The app crashed last time", style = MaterialTheme.typography.titleMedium)
             Text(crash.lines().take(6).joinToString("\n"), fontFamily = FontFamily.Monospace, fontSize = 10.sp, maxLines = 6)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilledTonalButton(onClick = { clip.setText(AnnotatedString(crash)) }, colors = ButtonDefaults.filledTonalButtonColors(containerColor = MaterialTheme.colorScheme.onErrorContainer, contentColor = MaterialTheme.colorScheme.errorContainer)) { Text("Copy details") }
+                FilledTonalButton(onClick = { copy(crash) }, colors = ButtonDefaults.filledTonalButtonColors(containerColor = MaterialTheme.colorScheme.onErrorContainer, contentColor = MaterialTheme.colorScheme.errorContainer)) { Text("Copy details") }
                 TextButton(onClick = onDismiss, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onErrorContainer)) { Text("Dismiss") }
             }
         }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -177,7 +178,7 @@ fun PrintFileScreen(ui: UiState, pad: PaddingValues, go: (Dest) -> Unit) {
                     )
                 }
                 ListItem(
-                    headlineContent = { Text("Rotate") }, supportingContent = { Text("${s.rotation}°") }, leadingContent = { OneUiChipIcon(Icons.Default.RotateRight, ui) }, colors = clear(),
+                    headlineContent = { Text("Rotate") }, supportingContent = { Text("${s.rotation}°") }, leadingContent = { OneUiChipIcon(Icons.AutoMirrored.Filled.RotateRight, ui) }, colors = clear(),
                     trailingContent = { OutlinedButton(onClick = { s = s.copy(rotation = (s.rotation + 90) % 360) }) { Text("Rotate 90°") } },
                 )
                 ListItem(

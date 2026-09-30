@@ -14,9 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -41,7 +39,7 @@ private fun qr(text: String, px: Int = 600): Bitmap {
 @Composable
 fun ServerScreen(ui: UiState, pad: PaddingValues) {
     val ctx = LocalContext.current
-    val clip = LocalClipboardManager.current
+    val copy = rememberCopy()
     val srv by ServerService.state.collectAsState()
     var showQr by remember { mutableStateOf(false) }
     var port by remember(ui.serverPort) { mutableStateOf(ui.serverPort.toString()) }
@@ -64,7 +62,7 @@ fun ServerScreen(ui: UiState, pad: PaddingValues) {
                 )
                 if (srv.running) Row(Modifier.padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (srv.lan && url != null) FilledTonalButton(onClick = { showQr = true }) { Icon(Icons.Default.QrCode2, null); Spacer(Modifier.width(8.dp)); Text("Show QR") }
-                    if (url != null) OutlinedButton(onClick = { clip.setText(AnnotatedString(ServerService.url(true) ?: url)) }) { Icon(Icons.Default.ContentCopy, null); Spacer(Modifier.width(8.dp)); Text("Copy link") }
+                    if (url != null) OutlinedButton(onClick = { copy(ServerService.url(true) ?: url) }) { Icon(Icons.Default.ContentCopy, null); Spacer(Modifier.width(8.dp)); Text("Copy link") }
                 }
             }
         }
@@ -97,7 +95,7 @@ fun ServerScreen(ui: UiState, pad: PaddingValues) {
                 if (ui.serverAuth) ListItem(
                     headlineContent = { Text(ui.token, fontFamily = FontFamily.Monospace) }, supportingContent = { Text("Send as “Authorization: Bearer …”") }, colors = clearColors(),
                     trailingContent = { Row {
-                        IconButton(onClick = { clip.setText(AnnotatedString(ui.token)) }) { Icon(Icons.Default.ContentCopy, "Copy token") }
+                        IconButton(onClick = { copy(ui.token) }) { Icon(Icons.Default.ContentCopy, "Copy token") }
                         IconButton(onClick = ui::regenToken) { Icon(Icons.Default.Refresh, "New token") }
                     } },
                 )
