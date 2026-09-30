@@ -3,7 +3,7 @@ package dev.meowspool
 import android.content.Context
 import android.graphics.*
 import android.graphics.pdf.PdfRenderer
-import android.media.ExifInterface
+import androidx.exifinterface.media.ExifInterface
 import android.net.Uri
 import android.os.ParcelFileDescriptor
 import android.provider.OpenableColumns

@@ -25,6 +25,7 @@ object PrinterManager {
     private const val GRACE_MS = 30_000L
     private const val POLL_MS = 2_500L
 
+    @android.annotation.SuppressLint("StaticFieldLeak") // always the application context (see init)
     private lateinit var app: Context
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val lock = ReentrantLock()                      // serialises radio I/O (poll vs print)

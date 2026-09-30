@@ -39,6 +39,7 @@ object Prefs {
         set(v) = sp.edit().putInt("darkness", v).apply()
 
     /** Stack trace of the last uncaught crash (kept until dismissed) so it can be shown in the UI. */
+    @Suppress("ApplySharedPref") // commit() on purpose: must hit disk before the crashing process dies
     var lastCrash: String?
         get() = sp.getString("lastCrash", null)
         set(v) { sp.edit().apply { if (v == null) remove("lastCrash") else putString("lastCrash", v) }.commit() }

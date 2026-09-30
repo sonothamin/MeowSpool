@@ -71,6 +71,8 @@ class ServerService : Service() {
         return START_STICKY
     }
 
+    // Held for the whole lifetime of the foreground service (released in onDestroy), so no timeout.
+    @android.annotation.SuppressLint("WakelockTimeout")
     private fun hold() {
         if (wake == null) wake = (getSystemService(POWER_SERVICE) as PowerManager).newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "meowspool:server").apply { acquire() }
         @Suppress("DEPRECATION")

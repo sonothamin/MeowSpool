@@ -11,6 +11,7 @@ object Power {
     fun exempt(c: Context) = (c.getSystemService(Context.POWER_SERVICE) as PowerManager).isIgnoringBatteryOptimizations(c.packageName)
 
     /** Shows the system "let app run in background?" prompt; falls back to the general list if unavailable. */
+    @android.annotation.SuppressLint("BatteryLife") // user-visible print server must survive Doze; prompt is user-initiated
     fun request(c: Context) {
         val direct = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:${c.packageName}"))
         try { c.startActivity(direct) } catch (_: Throwable) {

@@ -42,7 +42,8 @@ android {
         }
     }
     testOptions { unitTests.isReturnDefaultValues = true }
-    lint { abortOnError = false; checkReleaseBuilds = false }
+    // UseKtx is stylistic noise (41 hits); targetSdk stays 36 until 37 behaviour changes are tested.
+    lint { abortOnError = false; checkReleaseBuilds = false; disable += "UseKtx"; informational += "OldTargetApi" }
     // No composeOptions/kotlinCompilerExtensionVersion needed: the Compose Compiler Gradle plugin
     // (applied above) derives the compiler version from the Kotlin version automatically.
 }
@@ -56,9 +57,10 @@ dependencies {
     implementation("androidx.compose.material3:material3:1.5.0-alpha22")
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.compose.ui:ui")
-    implementation("androidx.activity:activity-compose:1.12.2")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
-    implementation("com.google.zxing:core:3.5.3")
+    implementation("androidx.activity:activity-compose:1.13.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
+    implementation("androidx.exifinterface:exifinterface:1.4.1")
+    implementation("com.google.zxing:core:3.5.4")
     testImplementation("junit:junit:4.13.2")
 }
 
