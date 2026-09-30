@@ -22,6 +22,27 @@ android {
     // so no separate kotlinOptions{} block is needed.
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     buildFeatures { compose = true }
+    // Release signing comes from CI secrets / env only; nothing secret lives in the repo.
+    // Without them the release build is left unsigned (still installable after signing manually).
+    val ksPath = System.getenv("SIGNING_KEYSTORE_PATH")?.takeIf { it.isNotBlank() }
+    signingConfigs {
+        if (ksPath != null) create("release") {
+            storeFile = file(ksPath)
+            storePassword = System.getenv("SIGNING_STORE_PASSWORD")
+            keyAlias = System.getenv("SIGNING_KEY_ALIAS")
+            keyPassword = System.getenv("SIGNING_KEY_PASSWORD")
+        }
+    }
+    buildTypes {
+        release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            if (ksPath != null) signingConfig = signingConfigs.getByName("release")
+        }
+    }
+    testOptions { unitTests.isReturnDefaultValues = true }
+    lint { abortOnError = false; checkReleaseBuilds = false }
     // No composeOptions/kotlinCompilerExtensionVersion needed: the Compose Compiler Gradle plugin
     // (applied above) derives the compiler version from the Kotlin version automatically.
 }
@@ -35,9 +56,10 @@ dependencies {
     implementation("androidx.compose.material3:material3:1.5.0-alpha22")
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.compose.ui:ui")
-    implementation("androidx.activity:activity-compose:1.9.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+    implementation("androidx.activity:activity-compose:1.12.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
     implementation("com.google.zxing:core:3.5.3")
+    testImplementation("junit:junit:4.13.2")
 }
 
 // Ndot/NType are Nothing's own branded fonts ("NOTHING Tech. All Rights Reserved." per

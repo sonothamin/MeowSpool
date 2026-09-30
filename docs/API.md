@@ -25,7 +25,7 @@ Settings on the Print server screen:
 |---|---|
 | Network access | On: reachable from other devices on your Wi-Fi (binds `0.0.0.0`). Off: only apps on this phone (`127.0.0.1`). |
 | Port | Default `8631`, range 1024–65535. |
-| Require access token | Off by default. On: every API request must carry the token. |
+| Require access token | On by default. On: every API request must carry the token. |
 | Web page | Serves a simple upload page at `/`. |
 | API | Enables the `/api/...` endpoints below. The web page and API can be turned on separately. |
 
@@ -33,12 +33,11 @@ The server runs as a foreground service (you'll see a notification with a **Stop
 
 ## Authentication
 
-Authentication is optional. When **Require access token** is on, send the token (shown in the app) in one of these ways:
+Authentication is on by default. When **Require access token** is on, send the token (shown in the app) in one of these ways:
 
 ```
 Authorization: Bearer <token>
 X-API-Key: <token>
-?token=<token>            (query string; visible in logs, prefer a header)
 ```
 
 Requests without a valid token get `401`. The web page at `/` is always public; it asks for the token itself. The QR code contains the token in the URL fragment (`#t=...`), which browsers never send to the server.
@@ -209,7 +208,7 @@ console.log(await res.json());
 
 ## Security notes
 
-- The server speaks plain HTTP. Use it on a network you trust, and turn on **Require access token** if others share the Wi-Fi.
+- The server speaks plain HTTP. Use it on a network you trust, and keep **Require access token** on if others share the Wi-Fi.
 - With **Network access** off, only apps on the phone itself can connect.
 - The token is stored on the phone; generate a new one from the Print server screen at any time (this invalidates the old one).
 - Anyone with the token can print, feed and read printer status and history summaries. Nothing can read files from the phone.

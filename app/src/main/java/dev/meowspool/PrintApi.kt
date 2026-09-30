@@ -50,7 +50,7 @@ class PrintApi(private val ctx: Context) {
     }
 
     private fun authorized(r: Req): Boolean {
-        val given = r.header("authorization")?.removePrefix("Bearer ")?.trim() ?: r.header("x-api-key") ?: r.query["token"] ?: return false
+        val given = r.header("authorization")?.removePrefix("Bearer ")?.trim() ?: r.header("x-api-key") ?: return false
         return MessageDigest.isEqual(given.toByteArray(), token.toByteArray())
     }
 

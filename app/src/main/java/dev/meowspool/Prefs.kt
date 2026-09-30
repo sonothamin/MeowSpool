@@ -130,7 +130,7 @@ object Prefs {
         get() = sp.getInt("srvPort", 8631)
         set(v) = sp.edit().putInt("srvPort", v).apply()
     var serverAuth: Boolean
-        get() = sp.getBoolean("srvAuth", false)
+        get() = sp.getBoolean("srvAuth", true)
         set(v) = sp.edit().putBoolean("srvAuth", v).apply()
     var serverToken: String
         get() = sp.getString("srvToken", null) ?: newToken().also { serverToken = it }

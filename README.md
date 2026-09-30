@@ -6,7 +6,7 @@ An Android **print service** for Bluetooth **cat thermal printers** (GB01 / GB02
 
 - **System print service**: appears in Share → Print, Chrome, Photos, Files and other apps.
 - **Print a file**: pick a photo or PDF, then adjust size, margins, rotation, brightness, contrast, invert, dithering, darkness, copies and page range with a live preview.
-- **Print server** (optional): HTTP API and a browser upload page, local-only or over the network, with optional token auth and a QR code on demand. See [docs/API.md](docs/API.md).
+- **Print server** (optional): HTTP API and a browser upload page, local-only or over the network, with token auth (on by default) and a QR code on demand. See [docs/API.md](docs/API.md).
 - **History**: every job is kept with a preview. Open one to see its details, print it again, share it or save it as an image.
 - **Paper presets** (continuous roll, 100/50/30 mm labels, or your own), tear-off lines, feed and retract controls, test page with ruler and grey ramp.
 - **Live printer status**: paper, cover, overheat and battery flags, with automatic reconnect.
@@ -28,7 +28,7 @@ Menu → **Print server**.
 
 - **Web page and/or API**, switched independently.
 - **Network access** on (other devices on your Wi-Fi) or off (this phone only).
-- **Access token** (optional) for every request; **Show QR** opens the address, including the token, on another device.
+- **Access token** (on by default) for every request; **Show QR** opens the address, including the token, on another device.
 - Runs as a foreground service with wake and Wi-Fi locks. **Disable battery optimisation** for MeowSpool or Android may stop it in the background; the app warns you and the first-run flow asks.
 
 Quick example:
